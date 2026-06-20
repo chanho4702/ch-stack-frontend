@@ -4,6 +4,7 @@ import { createBrowserRouter, RouterProvider } from 'react-router-dom';
 import { AuthProvider } from './app/auth/AuthContext';
 import ProtectedRoute from './app/auth/ProtectedRoute';
 import LoginPage from './app/pages/LoginPage';
+import OAuthCallbackPage from './app/pages/OAuthCallbackPage';
 import AppLayout from './app/components/AppLayout';
 import DashboardHome from './app/pages/DashboardHome';
 import BoardListPage from './app/board/BoardListPage';
@@ -22,6 +23,7 @@ const router = createBrowserRouter([
   // 내 서비스 (로그인 -> 대시보드)
   { path: '/', element: <Home /> },
   { path: '/login', element: <LoginPage /> },
+  { path: '/oauth/callback', element: <OAuthCallbackPage /> },
   {
     path: '/app',
     element: (
