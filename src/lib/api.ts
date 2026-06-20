@@ -49,7 +49,11 @@ export async function tryRefresh(): Promise<boolean> {
     return false;
   }
   const body = await res.json();
-  setAccessToken(body.accessToken as string);
+  if (typeof body.accessToken !== 'string' || !body.accessToken) {
+    setAccessToken(null);
+    return false;
+  }
+  setAccessToken(body.accessToken);
   return true;
 }
 
@@ -64,7 +68,10 @@ export async function loginWithPassword(email: string, password: string): Promis
     throw new Error('로그인 실패');
   }
   const body = await res.json();
-  setAccessToken(body.accessToken as string);
+  if (typeof body.accessToken !== 'string' || !body.accessToken) {
+    throw new Error('로그인 응답에 accessToken 이 없습니다');
+  }
+  setAccessToken(body.accessToken);
 }
 
 export async function fetchMe(): Promise<AppUser> {
