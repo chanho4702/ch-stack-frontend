@@ -18,10 +18,10 @@ import AppTheme from '../../context/templates/shared-theme/AppTheme';
 import ColorModeSelect from '../../context/templates/shared-theme/ColorModeSelect';
 import {
   GoogleIcon,
-  FacebookIcon,
   SitemarkIcon,
 } from '../../context/templates/sign-in/components/CustomIcons';
 import { useAuth } from '../auth/AuthContext';
+import { googleLoginUrl } from '../../lib/api';
 
 // 참고 자료인 SignIn 템플릿(src/context/templates/sign-in)을 활용해 만든
 // "내 서비스" 의 실제 로그인 페이지. 제출하면 인증 후 /app 대시보드로 이동합니다.
@@ -70,7 +70,8 @@ const LoginContainer = styled(Stack)(({ theme }) => ({
 
 export default function LoginPage(props: { disableCustomTheme?: boolean }) {
   const navigate = useNavigate();
-  const { login } = useAuth();
+  const { loginWithPassword } = useAuth();
+  const [submitError, setSubmitError] = React.useState('');
 
   const [emailError, setEmailError] = React.useState(false);
   const [emailErrorMessage, setEmailErrorMessage] = React.useState('');
@@ -98,7 +99,7 @@ export default function LoginPage(props: { disableCustomTheme?: boolean }) {
     return ok;
   };
 
-  const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
+  const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     const data = new FormData(event.currentTarget);
     const email = String(data.get('email') ?? '');
@@ -106,9 +107,13 @@ export default function LoginPage(props: { disableCustomTheme?: boolean }) {
     if (!validate(email, password)) {
       return;
     }
-    // 데모: 형식만 맞으면 로그인 성공 처리. 추후 실제 API 로 교체.
-    login(email);
-    navigate('/app', { replace: true });
+    setSubmitError('');
+    try {
+      await loginWithPassword(email, password);
+      navigate('/app', { replace: true });
+    } catch {
+      setSubmitError('이메일 또는 비밀번호가 올바르지 않습니다.');
+    }
   };
 
   return (
@@ -168,6 +173,11 @@ export default function LoginPage(props: { disableCustomTheme?: boolean }) {
               control={<Checkbox value="remember" color="primary" />}
               label="로그인 상태 유지"
             />
+            {submitError && (
+              <Typography color="error" sx={{ fontSize: 14 }}>
+                {submitError}
+              </Typography>
+            )}
             <Button type="submit" fullWidth variant="contained">
               로그인
             </Button>
@@ -178,23 +188,11 @@ export default function LoginPage(props: { disableCustomTheme?: boolean }) {
               fullWidth
               variant="outlined"
               onClick={() => {
-                login('google-user@example.com');
-                navigate('/app', { replace: true });
+                window.location.href = googleLoginUrl();
               }}
               startIcon={<GoogleIcon />}
             >
               Google 계정으로 로그인
-            </Button>
-            <Button
-              fullWidth
-              variant="outlined"
-              onClick={() => {
-                login('facebook-user@example.com');
-                navigate('/app', { replace: true });
-              }}
-              startIcon={<FacebookIcon />}
-            >
-              Facebook 계정으로 로그인
             </Button>
             <Typography sx={{ textAlign: 'center' }}>
               계정이 없으신가요?{' '}
