@@ -14,8 +14,8 @@ export function createAuthClient(config: AuthClientConfig): AuthClient {
   let accessToken: string | null = null;
 
   // 동시 다발 refresh 합치기(in-flight dedup).
-  // RT 회전+재사용탐지 환경에서, AuthProvider 부트스트랩 + OAuthCallback + StrictMode
-  // 이중 실행이 같은 RT로 동시에 /refresh 를 치면 "재사용=도난"으로 오인돼 family 가
+  // RT 회전+재사용탐지 환경에서, AuthProvider 부트스트랩 refresh 가 StrictMode(dev)로
+  // 이중 실행되면 같은 RT로 동시에 /refresh 를 쳐 "재사용=도난"으로 오인돼 family 가
   // 폭파된다. 진행 중 요청이 있으면 그 Promise 를 공유해 네트워크 호출을 1번으로 만든다.
   let refreshInFlight: Promise<boolean> | null = null;
 

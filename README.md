@@ -58,7 +58,6 @@ npm run dev        # 개발 서버 → http://localhost:5173
 | --- | --- |
 | `/login` | 로그인 — 이메일/비밀번호 폼 + Google 계정 로그인 |
 | `/register` | 회원가입 — 이메일 + 비밀번호 + 비밀번호 확인 (성공 시 자동 로그인) |
-| `/oauth/callback` | Google OIDC 로그인 후 백엔드가 리다이렉트하는 착지 지점 |
 | `/app` | 대시보드 (보호됨) — 통계 카드 · 차트 · 데이터 그리드 |
 | `/app/board` | 게시판 목록 — 검색 · 페이지네이션 |
 | `/app/board/new` | 글쓰기 |
@@ -101,7 +100,7 @@ src/
 │
 ├─ app/                      # ★ 내 서비스 (여기에 기능 추가)
 │  ├─ components/            #   앱 셸: AppLayout / AppSideMenu / AppNavbar / AppMenuContent
-│  ├─ pages/                 #   LoginPage, SignUpPage, OAuthCallbackPage, NotFoundPage, RouteErrorPage, DashboardHome
+│  ├─ pages/                 #   LoginPage, SignUpPage, NotFoundPage, RouteErrorPage, DashboardHome
 │  └─ board/                 #   게시판 CRUD (boardStore + List/Detail/Form)
 │
 ├─ context/templates/        # ★ MUI 공식 템플릿 원본 (참고용, 수정 금지)

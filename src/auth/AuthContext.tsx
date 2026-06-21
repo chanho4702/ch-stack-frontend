@@ -8,7 +8,6 @@ interface AuthContextValue {
   loading: boolean;
   loginWithPassword: (email: string, password: string) => Promise<void>;
   signUp: (email: string, password: string) => Promise<void>;
-  completeOAuthLogin: () => Promise<void>;
   logout: () => Promise<void>;
 }
 
@@ -64,12 +63,6 @@ export function AuthProvider({
     [client],
   );
 
-  const completeOAuthLogin = React.useCallback(async () => {
-    const ok = await client.tryRefresh();
-    if (!ok) throw new Error('OAuth 세션 복원 실패');
-    setUser(await client.fetchMe());
-  }, [client]);
-
   const logout = React.useCallback(async () => {
     await client.logout();
     setUser(null);
@@ -82,10 +75,9 @@ export function AuthProvider({
       loading,
       loginWithPassword,
       signUp,
-      completeOAuthLogin,
       logout,
     }),
-    [user, loading, loginWithPassword, signUp, completeOAuthLogin, logout],
+    [user, loading, loginWithPassword, signUp, logout],
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

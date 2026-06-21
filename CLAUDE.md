@@ -54,10 +54,12 @@ Always import from the barrel `src/auth` — never reach into internal files.
 - `AuthContext.tsx` — `AuthProvider` (accepts an optional `client` prop, defaults to `authClient`) +
   `useAuth()` → `{ user, isAuthenticated, loading, loginWithPassword, signUp, completeOAuthLogin, logout }`.
   Silent session restore on load via `tryRefresh`.
-- `ProtectedRoute.tsx` — holds a spinner during restore, then redirects unauthenticated users to `/login`.
+- `ProtectedRoute.tsx` / `GuestRoute.tsx` — guards (auth-only / guest-only). Both take a `fallback`
+  prop for the restore state; the app passes the themed `AuthLoadingScreen` (no white flash).
 - Real auth pages live in `src/app/pages/`: `LoginPage` (`/login`, form + Google), `SignUpPage`
-  (`/register`, email + password×2, auto-login on success), `OAuthCallbackPage` (`/oauth/callback`).
-  The MUI `/sign-in` `/sign-up` routes are untouched **reference** templates.
+  (`/register`, email + password×2, auto-login on success). There is **no** OAuth callback page —
+  the backend redirects straight to `/app` and `AuthProvider`'s mount-time silent refresh restores
+  the session. The MUI `/sign-in` `/sign-up` routes are untouched **reference** templates.
 
 ### Reusable `src/notifications/` module (toasts)
 

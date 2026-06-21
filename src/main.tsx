@@ -5,7 +5,6 @@ import { AuthProvider, ProtectedRoute, GuestRoute } from './auth';
 import { NotificationProvider } from './notifications';
 import LoginPage from './app/pages/LoginPage';
 import SignUpPage from './app/pages/SignUpPage';
-import OAuthCallbackPage from './app/pages/OAuthCallbackPage';
 import NotFoundPage from './app/pages/NotFoundPage';
 import RouteErrorPage from './app/pages/RouteErrorPage';
 import AppLayout from './app/components/AppLayout';
@@ -44,7 +43,6 @@ const router = createBrowserRouter([
     ),
     errorElement: <RouteErrorPage />,
   },
-  { path: '/oauth/callback', element: <OAuthCallbackPage />, errorElement: <RouteErrorPage /> },
   {
     path: '/app',
     element: (
