@@ -72,7 +72,7 @@ export default function AppLayout(props: { disableCustomTheme?: boolean }) {
     <AppTheme {...props} themeComponents={xThemeComponents}>
       <CssBaseline enableColorScheme />
       <Box sx={{ display: 'flex' }}>
-        <AppSideMenu />
+        <AppSideMenu onLogout={handleLogout} />
         <AppNavbar onLogout={handleLogout} />
         <Box
           component="main"
