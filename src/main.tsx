@@ -1,7 +1,7 @@
 import { StrictMode } from 'react';
 import { createRoot } from 'react-dom/client';
 import { createBrowserRouter, RouterProvider } from 'react-router-dom';
-import { AuthProvider, ProtectedRoute } from './auth';
+import { AuthProvider, ProtectedRoute, GuestRoute } from './auth';
 import { NotificationProvider } from './notifications';
 import LoginPage from './app/pages/LoginPage';
 import SignUpPage from './app/pages/SignUpPage';
@@ -25,8 +25,24 @@ import Dashboard from './context/templates/dashboard/Dashboard';
 const router = createBrowserRouter([
   // 내 서비스 (로그인/회원가입 -> 대시보드)
   { path: '/', element: <Home />, errorElement: <RouteErrorPage /> },
-  { path: '/login', element: <LoginPage />, errorElement: <RouteErrorPage /> },
-  { path: '/register', element: <SignUpPage />, errorElement: <RouteErrorPage /> },
+  {
+    path: '/login',
+    element: (
+      <GuestRoute>
+        <LoginPage />
+      </GuestRoute>
+    ),
+    errorElement: <RouteErrorPage />,
+  },
+  {
+    path: '/register',
+    element: (
+      <GuestRoute>
+        <SignUpPage />
+      </GuestRoute>
+    ),
+    errorElement: <RouteErrorPage />,
+  },
   { path: '/oauth/callback', element: <OAuthCallbackPage />, errorElement: <RouteErrorPage /> },
   {
     path: '/app',

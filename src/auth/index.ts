@@ -5,6 +5,7 @@
 
 export { AuthProvider, useAuth } from './AuthContext';
 export { default as ProtectedRoute } from './ProtectedRoute';
+export { default as GuestRoute } from './GuestRoute';
 export { createAuthClient } from './client';
 export { authClient } from './authClient';
 export { SignupError } from './types';
