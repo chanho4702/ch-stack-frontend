@@ -9,7 +9,7 @@ import SelectContent from '../../context/templates/dashboard/components/SelectCo
 import CardAlert from '../../context/templates/dashboard/components/CardAlert';
 import OptionsMenu from '../../context/templates/dashboard/components/OptionsMenu';
 import AppMenuContent from './AppMenuContent';
-import { useAuth } from '../auth/AuthContext';
+import { useAuth } from '../../auth';
 
 const drawerWidth = 240;
 

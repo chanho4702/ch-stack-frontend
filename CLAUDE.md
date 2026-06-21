@@ -40,14 +40,33 @@ Routing is centralized in `src/main.tsx` (`createBrowserRouter`); the whole tree
 - `src/pages/` (Home hub, ComponentsCatalog, ComponentsShowcase) and `src/showcase/` are a component
   browser, separate from both.
 
-### Demo data layers (swap these for real APIs)
+### Reusable `src/auth/` module (OAuth + OIDC + 자체 JWT)
 
-Two seams isolate the backend so screens don't change when wiring a real server:
+Self-contained auth module wired to the `oauth-oidc-login` backend. **Copy the whole `src/auth/`
+folder into another project and only `VITE_API_BASE` (or `authClient.ts`'s `baseUrl`) needs to change.**
+Always import from the barrel `src/auth` — never reach into internal files.
 
-- `src/app/auth/AuthContext.tsx` — login state in `localStorage` key `myfornt.auth.user`. It's a demo:
-  any email-shaped string + 6-char password passes. Replace the `login`/`logout` bodies with API calls.
-  `src/app/auth/ProtectedRoute.tsx` redirects unauthenticated users to `/login`; all `/app/*` routes
-  sit behind it.
+- `client.ts` — `createAuthClient({ baseUrl })` factory. Each instance owns its own in-memory access
+  token + in-flight refresh dedup (no module-level singletons), so multiple backends can coexist.
+  Methods: `login`/`signup`/`logout`/`refresh`/`fetchMe`/`apiFetch` (Bearer auto-attach + one 401→refresh
+  retry)/`googleLoginUrl`. AT lives in memory; RT is the backend's HttpOnly cookie.
+- `authClient.ts` — this app's default instance (`baseUrl: VITE_API_BASE`).
+- `AuthContext.tsx` — `AuthProvider` (accepts an optional `client` prop, defaults to `authClient`) +
+  `useAuth()` → `{ user, isAuthenticated, loading, loginWithPassword, signUp, completeOAuthLogin, logout }`.
+  Silent session restore on load via `tryRefresh`.
+- `ProtectedRoute.tsx` — holds a spinner during restore, then redirects unauthenticated users to `/login`.
+- Real auth pages live in `src/app/pages/`: `LoginPage` (`/login`, form + Google), `SignUpPage`
+  (`/register`, email + password×2, auto-login on success), `OAuthCallbackPage` (`/oauth/callback`).
+  The MUI `/sign-in` `/sign-up` routes are untouched **reference** templates.
+
+### Reusable `src/notifications/` module (toasts)
+
+`NotificationProvider` (wraps the app in `main.tsx`) + `useNotify()` → `{ success, error, info, warning, show }`,
+a queued MUI Snackbar/Alert. Copy the folder to reuse. Route-level errors render via `RouteErrorPage`
+(`errorElement` on every route) and unknown paths hit `NotFoundPage` (`path: '*'`).
+
+### Demo data layer (swap for a real API)
+
 - `src/app/board/boardStore.ts` — full CRUD over `localStorage` key `myfornt.board.posts`
   (`listPosts`/`getPost`/`createPost`/`updatePost`/`deletePost`/`incrementViews`). Replace the function
   bodies with API calls.
