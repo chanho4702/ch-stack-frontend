@@ -7,7 +7,7 @@ import Stack from '@mui/material/Stack';
 import Typography from '@mui/material/Typography';
 import SelectContent from '../../context/templates/dashboard/components/SelectContent';
 import CardAlert from '../../context/templates/dashboard/components/CardAlert';
-import OptionsMenu from '../../context/templates/dashboard/components/OptionsMenu';
+import AppOptionsMenu from './AppOptionsMenu';
 import AppMenuContent from './AppMenuContent';
 import { useAuth } from '../../auth';
 
@@ -24,7 +24,7 @@ const Drawer = styled(MuiDrawer)({
   },
 });
 
-export default function AppSideMenu() {
+export default function AppSideMenu({ onLogout }: { onLogout: () => void }) {
   const { user } = useAuth();
   const email = user?.email ?? '';
   const initial = email ? email[0].toUpperCase() : '?';
@@ -77,7 +77,7 @@ export default function AppSideMenu() {
             {email}
           </Typography>
         </Box>
-        <OptionsMenu />
+        <AppOptionsMenu onLogout={onLogout} />
       </Stack>
     </Drawer>
   );
