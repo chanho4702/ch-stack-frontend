@@ -9,6 +9,7 @@ import OAuthCallbackPage from './app/pages/OAuthCallbackPage';
 import NotFoundPage from './app/pages/NotFoundPage';
 import RouteErrorPage from './app/pages/RouteErrorPage';
 import AppLayout from './app/components/AppLayout';
+import AuthLoadingScreen from './app/components/AuthLoadingScreen';
 import DashboardHome from './app/pages/DashboardHome';
 import BoardListPage from './app/board/BoardListPage';
 import BoardDetailPage from './app/board/BoardDetailPage';
@@ -28,7 +29,7 @@ const router = createBrowserRouter([
   {
     path: '/login',
     element: (
-      <GuestRoute>
+      <GuestRoute fallback={<AuthLoadingScreen />}>
         <LoginPage />
       </GuestRoute>
     ),
@@ -37,7 +38,7 @@ const router = createBrowserRouter([
   {
     path: '/register',
     element: (
-      <GuestRoute>
+      <GuestRoute fallback={<AuthLoadingScreen />}>
         <SignUpPage />
       </GuestRoute>
     ),
@@ -47,7 +48,7 @@ const router = createBrowserRouter([
   {
     path: '/app',
     element: (
-      <ProtectedRoute>
+      <ProtectedRoute fallback={<AuthLoadingScreen />}>
         <AppLayout />
       </ProtectedRoute>
     ),

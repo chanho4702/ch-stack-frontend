@@ -5,16 +5,24 @@ import { useAuth } from './AuthContext';
 
 // ProtectedRoute 의 반대: 이미 로그인한 사용자가 /login·/register 같은
 // "게스트 전용" 페이지에 오면 대시보드로 돌려보낸다.
-// 세션 복원 중(loading)에는 판정을 보류한다(스피너).
-export default function GuestRoute({ children }: { children: React.ReactNode }) {
+// 세션 복원 중(loading)에는 판정을 보류한다(fallback, 미지정 시 기본 스피너).
+export default function GuestRoute({
+  children,
+  fallback,
+}: {
+  children: React.ReactNode;
+  fallback?: React.ReactNode;
+}) {
   const { isAuthenticated, loading } = useAuth();
   const location = useLocation();
 
   if (loading) {
     return (
-      <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100dvh' }}>
-        <CircularProgress />
-      </Box>
+      fallback ?? (
+        <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100dvh' }}>
+          <CircularProgress />
+        </Box>
+      )
     );
   }
   if (isAuthenticated) {
