@@ -15,7 +15,7 @@ import CardAlert from '../../context/templates/dashboard/components/CardAlert';
 import { CustomIcon } from '../../context/templates/dashboard/components/AppNavbar';
 import ColorModeIconDropdown from '../../context/templates/shared-theme/ColorModeIconDropdown';
 import AppMenuContent from './AppMenuContent';
-import { useAuth } from '../auth/AuthContext';
+import { useAuth } from '../../auth';
 
 const Toolbar = styled(MuiToolbar)({
   width: '100%',

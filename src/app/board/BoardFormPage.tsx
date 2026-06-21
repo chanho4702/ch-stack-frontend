@@ -7,7 +7,7 @@ import Button from '@mui/material/Button';
 import TextField from '@mui/material/TextField';
 import Paper from '@mui/material/Paper';
 import { createPost, getPost, updatePost } from './boardStore';
-import { useAuth } from '../auth/AuthContext';
+import { useAuth } from '../../auth';
 
 export default function BoardFormPage() {
   const navigate = useNavigate();
