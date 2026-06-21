@@ -27,7 +27,7 @@ import {
   datePickersCustomizations,
   treeViewCustomizations,
 } from '../../context/templates/dashboard/theme/customizations';
-import { useAuth } from '../auth/AuthContext';
+import { useAuth } from '../../auth';
 
 const xThemeComponents = {
   ...chartsCustomizations,

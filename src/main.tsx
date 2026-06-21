@@ -1,10 +1,13 @@
 import { StrictMode } from 'react';
 import { createRoot } from 'react-dom/client';
 import { createBrowserRouter, RouterProvider } from 'react-router-dom';
-import { AuthProvider } from './app/auth/AuthContext';
-import ProtectedRoute from './app/auth/ProtectedRoute';
+import { AuthProvider, ProtectedRoute } from './auth';
+import { NotificationProvider } from './notifications';
 import LoginPage from './app/pages/LoginPage';
+import SignUpPage from './app/pages/SignUpPage';
 import OAuthCallbackPage from './app/pages/OAuthCallbackPage';
+import NotFoundPage from './app/pages/NotFoundPage';
+import RouteErrorPage from './app/pages/RouteErrorPage';
 import AppLayout from './app/components/AppLayout';
 import DashboardHome from './app/pages/DashboardHome';
 import BoardListPage from './app/board/BoardListPage';
@@ -20,10 +23,11 @@ import SignInSide from './context/templates/sign-in-side/SignInSide';
 import Dashboard from './context/templates/dashboard/Dashboard';
 
 const router = createBrowserRouter([
-  // 내 서비스 (로그인 -> 대시보드)
-  { path: '/', element: <Home /> },
-  { path: '/login', element: <LoginPage /> },
-  { path: '/oauth/callback', element: <OAuthCallbackPage /> },
+  // 내 서비스 (로그인/회원가입 -> 대시보드)
+  { path: '/', element: <Home />, errorElement: <RouteErrorPage /> },
+  { path: '/login', element: <LoginPage />, errorElement: <RouteErrorPage /> },
+  { path: '/register', element: <SignUpPage />, errorElement: <RouteErrorPage /> },
+  { path: '/oauth/callback', element: <OAuthCallbackPage />, errorElement: <RouteErrorPage /> },
   {
     path: '/app',
     element: (
@@ -31,6 +35,7 @@ const router = createBrowserRouter([
         <AppLayout />
       </ProtectedRoute>
     ),
+    errorElement: <RouteErrorPage />,
     children: [
       { index: true, element: <DashboardHome /> },
       { path: 'board', element: <BoardListPage /> },
@@ -49,12 +54,17 @@ const router = createBrowserRouter([
   { path: '/sign-up', element: <SignUp /> },
   { path: '/sign-in-side', element: <SignInSide /> },
   { path: '/dashboard', element: <Dashboard /> },
+
+  // 매칭되지 않는 모든 경로 → 404
+  { path: '*', element: <NotFoundPage /> },
 ]);
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
-    <AuthProvider>
-      <RouterProvider router={router} />
-    </AuthProvider>
+    <NotificationProvider>
+      <AuthProvider>
+        <RouterProvider router={router} />
+      </AuthProvider>
+    </NotificationProvider>
   </StrictMode>,
 );

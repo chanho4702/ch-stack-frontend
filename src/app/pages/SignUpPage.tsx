@@ -2,9 +2,7 @@ import * as React from 'react';
 import { useNavigate } from 'react-router-dom';
 import Box from '@mui/material/Box';
 import Button from '@mui/material/Button';
-import Checkbox from '@mui/material/Checkbox';
 import CssBaseline from '@mui/material/CssBaseline';
-import FormControlLabel from '@mui/material/FormControlLabel';
 import Divider from '@mui/material/Divider';
 import FormLabel from '@mui/material/FormLabel';
 import FormControl from '@mui/material/FormControl';
@@ -20,11 +18,12 @@ import {
   GoogleIcon,
   SitemarkIcon,
 } from '../../context/templates/sign-in/components/CustomIcons';
-import { useAuth, googleLoginUrl } from '../../auth';
+import { useAuth, googleLoginUrl, SignupError } from '../../auth';
 import { useNotify } from '../../notifications';
 
-// 참고 자료인 SignIn 템플릿(src/context/templates/sign-in)을 활용해 만든
-// "내 서비스" 의 실제 로그인 페이지. 제출하면 인증 후 /app 대시보드로 이동합니다.
+// "내 서비스" 의 실제 회원가입 페이지. 백엔드 POST /api/auth/signup 에 연동되며,
+// 가입 성공 시 자동 로그인 후 /app 대시보드로 이동한다.
+// (참고용 MUI 원본 SignUp 템플릿은 /sign-up 에 그대로 남아 있다.)
 
 const Card = styled(MuiCard)(({ theme }) => ({
   display: 'flex',
@@ -45,7 +44,7 @@ const Card = styled(MuiCard)(({ theme }) => ({
   }),
 }));
 
-const LoginContainer = styled(Stack)(({ theme }) => ({
+const SignUpContainer = styled(Stack)(({ theme }) => ({
   height: '100dvh',
   minHeight: '100%',
   padding: theme.spacing(2),
@@ -68,18 +67,20 @@ const LoginContainer = styled(Stack)(({ theme }) => ({
   },
 }));
 
-export default function LoginPage(props: { disableCustomTheme?: boolean }) {
+export default function SignUpPage(props: { disableCustomTheme?: boolean }) {
   const navigate = useNavigate();
-  const { loginWithPassword } = useAuth();
+  const { signUp } = useAuth();
   const notify = useNotify();
-  const [submitError, setSubmitError] = React.useState('');
+  const [submitting, setSubmitting] = React.useState(false);
 
   const [emailError, setEmailError] = React.useState(false);
   const [emailErrorMessage, setEmailErrorMessage] = React.useState('');
   const [passwordError, setPasswordError] = React.useState(false);
   const [passwordErrorMessage, setPasswordErrorMessage] = React.useState('');
+  const [confirmError, setConfirmError] = React.useState(false);
+  const [confirmErrorMessage, setConfirmErrorMessage] = React.useState('');
 
-  const validate = (email: string, password: string) => {
+  const validate = (email: string, password: string, confirm: string) => {
     let ok = true;
     if (!email || !/\S+@\S+\.\S+/.test(email)) {
       setEmailError(true);
@@ -97,6 +98,14 @@ export default function LoginPage(props: { disableCustomTheme?: boolean }) {
       setPasswordError(false);
       setPasswordErrorMessage('');
     }
+    if (confirm !== password) {
+      setConfirmError(true);
+      setConfirmErrorMessage('비밀번호가 일치하지 않습니다.');
+      ok = false;
+    } else {
+      setConfirmError(false);
+      setConfirmErrorMessage('');
+    }
     return ok;
   };
 
@@ -105,17 +114,27 @@ export default function LoginPage(props: { disableCustomTheme?: boolean }) {
     const data = new FormData(event.currentTarget);
     const email = String(data.get('email') ?? '');
     const password = String(data.get('password') ?? '');
-    if (!validate(email, password)) {
+    const confirm = String(data.get('confirmPassword') ?? '');
+    if (!validate(email, password, confirm)) {
       return;
     }
-    setSubmitError('');
+    setSubmitting(true);
     try {
-      await loginWithPassword(email, password);
+      await signUp(email, password);
+      notify.success('회원가입이 완료되었습니다. 환영합니다!');
       navigate('/app', { replace: true });
-    } catch {
-      const message = '이메일 또는 비밀번호가 올바르지 않습니다.';
-      setSubmitError(message);
-      notify.error(message);
+    } catch (err) {
+      if (err instanceof SignupError && err.conflict) {
+        setEmailError(true);
+        setEmailErrorMessage('이미 가입된 이메일입니다.');
+        notify.error('이미 가입된 이메일입니다. 다른 이메일을 사용하세요.');
+      } else {
+        const message =
+          err instanceof Error && err.message ? err.message : '회원가입에 실패했습니다.';
+        notify.error(message);
+      }
+    } finally {
+      setSubmitting(false);
     }
   };
 
@@ -123,7 +142,7 @@ export default function LoginPage(props: { disableCustomTheme?: boolean }) {
     <AppTheme {...props}>
       <CssBaseline enableColorScheme />
       <ColorModeSelect sx={{ position: 'fixed', top: '1rem', right: '1rem' }} />
-      <LoginContainer direction="column" sx={{ justifyContent: 'space-between' }}>
+      <SignUpContainer direction="column" sx={{ justifyContent: 'space-between' }}>
         <Card variant="outlined">
           <SitemarkIcon />
           <Typography
@@ -131,7 +150,7 @@ export default function LoginPage(props: { disableCustomTheme?: boolean }) {
             variant="h4"
             sx={{ width: '100%', fontSize: 'clamp(2rem, 10vw, 2.15rem)' }}
           >
-            로그인
+            회원가입
           </Typography>
           <Box
             component="form"
@@ -165,24 +184,31 @@ export default function LoginPage(props: { disableCustomTheme?: boolean }) {
                 placeholder="••••••"
                 type="password"
                 id="password"
-                autoComplete="current-password"
+                autoComplete="new-password"
                 required
                 fullWidth
                 variant="outlined"
                 color={passwordError ? 'error' : 'primary'}
               />
             </FormControl>
-            <FormControlLabel
-              control={<Checkbox value="remember" color="primary" />}
-              label="로그인 상태 유지"
-            />
-            {submitError && (
-              <Typography color="error" sx={{ fontSize: 14 }}>
-                {submitError}
-              </Typography>
-            )}
-            <Button type="submit" fullWidth variant="contained">
-              로그인
+            <FormControl>
+              <FormLabel htmlFor="confirmPassword">비밀번호 확인</FormLabel>
+              <TextField
+                error={confirmError}
+                helperText={confirmErrorMessage}
+                name="confirmPassword"
+                placeholder="••••••"
+                type="password"
+                id="confirmPassword"
+                autoComplete="new-password"
+                required
+                fullWidth
+                variant="outlined"
+                color={confirmError ? 'error' : 'primary'}
+              />
+            </FormControl>
+            <Button type="submit" fullWidth variant="contained" disabled={submitting}>
+              {submitting ? '가입 처리 중…' : '회원가입'}
             </Button>
           </Box>
           <Divider>또는</Divider>
@@ -195,17 +221,17 @@ export default function LoginPage(props: { disableCustomTheme?: boolean }) {
               }}
               startIcon={<GoogleIcon />}
             >
-              Google 계정으로 로그인
+              Google 계정으로 시작하기
             </Button>
             <Typography sx={{ textAlign: 'center' }}>
-              계정이 없으신가요?{' '}
-              <Link href="/register" variant="body2">
-                회원가입
+              이미 계정이 있으신가요?{' '}
+              <Link href="/login" variant="body2">
+                로그인
               </Link>
             </Typography>
           </Box>
         </Card>
-      </LoginContainer>
+      </SignUpContainer>
     </AppTheme>
   );
 }
