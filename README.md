@@ -1,11 +1,14 @@
 # myFornt — MSA Web Shell
 
-MSA 서비스의 **프론트엔드 베이스 템플릿**입니다. 로그인 → 보호된 대시보드 → 게시판으로
-이어지는 기본 골격이 갖춰져 있고, 여기에 자신의 서비스 화면을 붙여 나가면 됩니다.
-모든 UI는 [Material UI (MUI) v9](https://mui.com/) 기반입니다.
+MSA 서비스의 **프론트엔드 베이스 템플릿**입니다. 회원가입 / 로그인 → 보호된 대시보드 →
+게시판으로 이어지는 기본 골격이 갖춰져 있고, 여기에 자신의 서비스 화면을 붙여 나가면 됩니다.
+인증은 백엔드 [`oauth-oidc-login`](#백엔드-연동-인증)(OAuth2 + Google OIDC + 자체 JWT)에
+실제로 연동돼 있습니다. 모든 UI는 [Material UI (MUI) v9](https://mui.com/) 기반입니다.
 
-> 작업 공간은 두 영역으로 나뉩니다.
+> 작업 공간은 네 영역으로 나뉩니다.
 > - **`src/app`** — 실제 내 서비스 코드 (여기에 기능을 추가)
+> - **`src/auth`** — 재사용 인증 모듈 (폴더째 복사해 다른 프로젝트에서 재사용)
+> - **`src/notifications`** — 재사용 토스트 알림 모듈
 > - **`src/context`** — MUI 공식 템플릿 원본 (참고/재사용용, 수정하지 않음)
 
 ---
@@ -38,6 +41,14 @@ npm run dev        # 개발 서버 → http://localhost:5173
 | `npm run build` | `tsc -b && vite build` (타입체크 + 프로덕션 빌드) |
 | `npm run preview` | 빌드 결과 미리보기 |
 
+> **백엔드가 필요합니다.** 인증이 실제로 동작하려면 `oauth-oidc-login` 백엔드가 떠 있어야 합니다.
+> 연동 주소는 `.env` 의 `VITE_API_BASE` 로 지정합니다 (기본 `http://localhost:8080`).
+>
+> ```bash
+> # .env
+> VITE_API_BASE=http://localhost:8080
+> ```
+
 ---
 
 ## 화면 / 라우트
@@ -45,7 +56,9 @@ npm run dev        # 개발 서버 → http://localhost:5173
 ### 내 서비스 (`src/app`)
 | 경로 | 화면 |
 | --- | --- |
-| `/login` | 로그인 (데모: 이메일 형식 + 비밀번호 6자 이상이면 통과) |
+| `/login` | 로그인 — 이메일/비밀번호 폼 + Google 계정 로그인 |
+| `/register` | 회원가입 — 이메일 + 비밀번호 + 비밀번호 확인 (성공 시 자동 로그인) |
+| `/oauth/callback` | Google OIDC 로그인 후 백엔드가 리다이렉트하는 착지 지점 |
 | `/app` | 대시보드 (보호됨) — 통계 카드 · 차트 · 데이터 그리드 |
 | `/app/board` | 게시판 목록 — 검색 · 페이지네이션 |
 | `/app/board/new` | 글쓰기 |
@@ -53,6 +66,10 @@ npm run dev        # 개발 서버 → http://localhost:5173
 | `/app/board/:id/edit` | 글 수정 |
 
 > `/app` 이하는 로그인하지 않으면 `/login` 으로 리다이렉트됩니다.
+> 매칭되지 않는 경로는 **404 페이지**, 렌더링 중 오류는 **오류 페이지**(`RouteErrorPage`)로 잡힙니다.
+
+> **데모 계정** (백엔드가 시드): `user@demo.com` / `password`, `admin@demo.com` / `admin`.
+> Google 로그인은 백엔드에 `GOOGLE_CLIENT_ID/SECRET` 환경변수가 설정돼 있어야 동작합니다.
 
 ### 허브 & 컴포넌트 브라우저 (`src/pages`)
 | 경로 | 화면 |
@@ -70,12 +87,21 @@ MUI 공식 템플릿을 그대로 둔 레퍼런스입니다: `/sign-in`, `/sign-
 
 ```
 src/
-├─ main.tsx                  # 라우터 + AuthProvider 진입점
+├─ main.tsx                  # 라우터 + AuthProvider + NotificationProvider 진입점
+│
+├─ auth/                     # ★ 재사용 인증 모듈 (폴더째 복사 가능)
+│  ├─ client.ts              #   createAuthClient({ baseUrl }) 팩토리 (login/signup/logout/refresh/…)
+│  ├─ authClient.ts          #   이 앱의 기본 인스턴스 (VITE_API_BASE)
+│  ├─ AuthContext.tsx        #   AuthProvider + useAuth
+│  ├─ ProtectedRoute.tsx     #   미로그인 시 /login 으로 가드
+│  └─ index.ts               #   공개 표면 (배럴) — 항상 여기서 import
+│
+├─ notifications/            # ★ 재사용 토스트 모듈 (폴더째 복사 가능)
+│  └─ NotificationProvider.tsx   # NotificationProvider + useNotify (MUI Snackbar/Alert)
 │
 ├─ app/                      # ★ 내 서비스 (여기에 기능 추가)
-│  ├─ auth/                  #   데모 인증 (localStorage) + ProtectedRoute
 │  ├─ components/            #   앱 셸: AppLayout / AppSideMenu / AppNavbar / AppMenuContent
-│  ├─ pages/                 #   LoginPage, DashboardHome
+│  ├─ pages/                 #   LoginPage, SignUpPage, OAuthCallbackPage, NotFoundPage, RouteErrorPage, DashboardHome
 │  └─ board/                 #   게시판 CRUD (boardStore + List/Detail/Form)
 │
 ├─ context/templates/        # ★ MUI 공식 템플릿 원본 (참고용, 수정 금지)
@@ -98,11 +124,29 @@ src/
 - **`src/app`** 이 실제 서비스 코드입니다. 예를 들어 `AppLayout`/`AppSideMenu` 는 참고 대시보드의
   구성요소를 가져다 쓰되 라우팅·인증을 연결한 "내 버전"입니다.
 
-### 인증 (데모)
-- `app/auth/AuthContext.tsx` — localStorage(`myfornt.auth.user`)에 로그인 상태만 저장합니다.
-  형식만 맞으면 통과하는 **데모**이므로, 실제 백엔드 연동 시 `login`/`logout` 내부를 API 호출로
-  교체하세요.
-- `app/auth/ProtectedRoute.tsx` — 미로그인 시 `/login` 으로 보냅니다.
+### 백엔드 연동 인증
+백엔드 `oauth-oidc-login` 에 실제 연동된 인증입니다. **Access Token(AT)은 메모리에만** 두고,
+**Refresh Token(RT)은 백엔드가 심는 HttpOnly 쿠키**라 프론트에서 직접 다루지 않습니다. 새로고침하면
+RT 쿠키로 silent refresh 해 세션을 복원합니다.
+
+- `auth/client.ts` — `createAuthClient({ baseUrl })` 팩토리. 인스턴스마다 자기 AT·refresh 합치기
+  (in-flight dedup)를 가져 모듈 전역 싱글톤이 없습니다. 메서드: `login` / `signup`(가입 후 자동 로그인) /
+  `logout` / `tryRefresh` / `fetchMe` / `apiFetch`(Bearer 자동 첨부 + 401 → refresh 1회 재시도) /
+  `googleLoginUrl`.
+- `auth/AuthContext.tsx` — `useAuth()` → `{ user, isAuthenticated, loading, loginWithPassword, signUp,
+  completeOAuthLogin, logout }`. `AuthProvider` 는 `client` 를 주입받을 수 있어(기본은 이 앱 인스턴스)
+  다른 백엔드에 붙일 때 baseUrl 만 바꾸면 됩니다.
+- `auth/ProtectedRoute.tsx` — 세션 복원 중에는 스피너, 끝나면 미로그인 시 `/login` 으로 보냅니다.
+
+> **재사용:** `src/auth` 폴더를 다른 프로젝트로 통째로 복사하고 `VITE_API_BASE`(또는 `authClient.ts`
+> 의 `baseUrl`)만 맞추면 그대로 동작합니다. import 는 항상 배럴(`src/auth`)에서 하세요.
+
+### 알림 / 에러 처리
+- `notifications/NotificationProvider.tsx` — `useNotify()` → `success` / `error` / `info` / `warning`.
+  큐형 MUI Snackbar/Alert 토스트입니다. 로그인·회원가입·OAuth 실패 시 토스트로 알립니다.
+- `app/pages/RouteErrorPage.tsx` — 모든 라우트의 `errorElement`. 렌더링 예외를 흰 화면 대신 오류
+  페이지로 잡습니다.
+- `app/pages/NotFoundPage.tsx` — 매칭되지 않는 경로(`*`)의 404 페이지.
 
 ### 게시판 데이터
 - `app/board/boardStore.ts` 가 localStorage(`myfornt.board.posts`)로 CRUD를 처리합니다
