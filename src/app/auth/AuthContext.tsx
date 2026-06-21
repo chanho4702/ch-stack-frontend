@@ -1,49 +1,66 @@
 import * as React from 'react';
-
-// 데모용 인증. 실제 백엔드 대신 localStorage 에 로그인 상태만 저장합니다.
-// 추후 이 login/logout 안에서 실제 API 호출로 교체하세요.
-
-const STORAGE_KEY = 'myfornt.auth.user';
-
-export interface AuthUser {
-  email: string;
-}
+import * as api from '../../lib/api';
+import type { AppUser } from '../../lib/api';
 
 interface AuthContextValue {
-  user: AuthUser | null;
+  user: AppUser | null;
   isAuthenticated: boolean;
-  login: (email: string) => void;
-  logout: () => void;
+  loading: boolean;
+  loginWithPassword: (email: string, password: string) => Promise<void>;
+  completeOAuthLogin: () => Promise<void>;
+  logout: () => Promise<void>;
 }
 
 const AuthContext = React.createContext<AuthContextValue | undefined>(undefined);
 
-function readStoredUser(): AuthUser | null {
-  try {
-    const raw = localStorage.getItem(STORAGE_KEY);
-    return raw ? (JSON.parse(raw) as AuthUser) : null;
-  } catch {
-    return null;
-  }
-}
-
 export function AuthProvider({ children }: { children: React.ReactNode }) {
-  const [user, setUser] = React.useState<AuthUser | null>(() => readStoredUser());
+  const [user, setUser] = React.useState<AppUser | null>(null);
+  const [loading, setLoading] = React.useState(true);
 
-  const login = React.useCallback((email: string) => {
-    const next = { email };
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(next));
-    setUser(next);
+  // 앱 로드 시 RT 쿠키로 silent 세션 복원.
+  React.useEffect(() => {
+    let active = true;
+    (async () => {
+      try {
+        if (await api.tryRefresh()) {
+          const me = await api.fetchMe();
+          if (active) setUser(me);
+        }
+      } finally {
+        if (active) setLoading(false);
+      }
+    })();
+    return () => {
+      active = false;
+    };
   }, []);
 
-  const logout = React.useCallback(() => {
-    localStorage.removeItem(STORAGE_KEY);
+  const loginWithPassword = React.useCallback(async (email: string, password: string) => {
+    await api.loginWithPassword(email, password);
+    setUser(await api.fetchMe());
+  }, []);
+
+  const completeOAuthLogin = React.useCallback(async () => {
+    const ok = await api.tryRefresh();
+    if (!ok) throw new Error('OAuth 세션 복원 실패');
+    setUser(await api.fetchMe());
+  }, []);
+
+  const logout = React.useCallback(async () => {
+    await api.logout();
     setUser(null);
   }, []);
 
   const value = React.useMemo<AuthContextValue>(
-    () => ({ user, isAuthenticated: !!user, login, logout }),
-    [user, login, logout],
+    () => ({
+      user,
+      isAuthenticated: !!user,
+      loading,
+      loginWithPassword,
+      completeOAuthLogin,
+      logout,
+    }),
+    [user, loading, loginWithPassword, completeOAuthLogin, logout],
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

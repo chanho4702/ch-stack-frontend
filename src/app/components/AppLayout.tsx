@@ -63,8 +63,8 @@ export default function AppLayout(props: { disableCustomTheme?: boolean }) {
   const { logout } = useAuth();
   const crumbs = useCrumbs(location.pathname);
 
-  const handleLogout = () => {
-    logout();
+  const handleLogout = async () => {
+    await logout();
     navigate('/login', { replace: true });
   };
 
