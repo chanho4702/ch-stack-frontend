@@ -24,30 +24,16 @@ export interface AuthClientConfig {
 export interface AuthClient {
   getAccessToken(): string | null;
   setAccessToken(token: string | null): void;
-  /** 브라우저를 백엔드 OAuth 시작점으로 보낼 때 쓰는 URL. */
+  /** 백엔드 OIDC 로그인 시작 URL(Keycloak로 리다이렉트). */
+  loginUrl(): string;
+  /** 구글로 바로 가는 로그인 URL(Keycloak kc_idp_hint=google). */
   googleLoginUrl(): string;
   /** Authorization 헤더 자동 첨부 + 401 시 1회 refresh 후 재시도하는 fetch. */
   apiFetch(path: string, init?: RequestInit): Promise<Response>;
   /** RT 쿠키로 새 AT 획득(동시 호출은 1요청으로 합침). 성공 시 true. */
   tryRefresh(): Promise<boolean>;
-  /** 폼 로그인. 성공 시 AT 를 인스턴스에 저장. */
-  login(email: string, password: string): Promise<void>;
-  /** 회원가입 후 곧바로 로그인까지 수행(자동 로그인). */
-  signup(email: string, password: string): Promise<void>;
   /** 현재 AT 로 사용자 정보 조회. */
   fetchMe(): Promise<AppUser>;
-  /** 백엔드 로그아웃(RT 무효화 + AT 블랙리스트) 후 AT 비움. */
+  /** 백엔드 로그아웃 후 AT 비움. Keycloak 로그아웃 URL이 있으면 그쪽으로 이동. */
   logout(): Promise<void>;
-}
-
-/** 회원가입 실패 원인(페이지에서 메시지 분기용). */
-export class SignupError extends Error {
-  constructor(
-    message: string,
-    /** true 면 이미 존재하는 이메일(HTTP 409). */
-    readonly conflict: boolean,
-  ) {
-    super(message);
-    this.name = 'SignupError';
-  }
 }

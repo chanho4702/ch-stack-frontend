@@ -5,7 +5,6 @@
 // baseUrl 만 바꿔 새 인스턴스를 만들면 된다.
 
 import type { AppUser, AuthClient, AuthClientConfig } from './types';
-import { SignupError } from './types';
 
 export function createAuthClient(config: AuthClientConfig): AuthClient {
   const baseUrl = config.baseUrl.replace(/\/+$/, '');
@@ -26,8 +25,12 @@ export function createAuthClient(config: AuthClientConfig): AuthClient {
     accessToken = token;
   }
 
+  function loginUrl(): string {
+    return `${baseUrl}/oauth2/authorization/keycloak`;
+  }
+
   function googleLoginUrl(): string {
-    return `${baseUrl}/oauth2/authorization/google`;
+    return `${baseUrl}/oauth2/authorization/keycloak?kc_idp_hint=google`;
   }
 
   async function rawFetch(path: string, init: RequestInit = {}): Promise<Response> {
@@ -70,41 +73,6 @@ export function createAuthClient(config: AuthClientConfig): AuthClient {
     return refreshInFlight;
   }
 
-  async function login(email: string, password: string): Promise<void> {
-    const res = await fetch(`${baseUrl}/api/auth/login`, {
-      method: 'POST',
-      credentials: 'include',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ username: email, password }),
-    });
-    if (!res.ok) {
-      throw new Error('로그인 실패');
-    }
-    const body = await res.json();
-    if (typeof body.accessToken !== 'string' || !body.accessToken) {
-      throw new Error('로그인 응답에 accessToken 이 없습니다');
-    }
-    setAccessToken(body.accessToken);
-  }
-
-  async function signup(email: string, password: string): Promise<void> {
-    const res = await fetch(`${baseUrl}/api/auth/signup`, {
-      method: 'POST',
-      credentials: 'include',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ username: email, password }),
-    });
-    if (!res.ok) {
-      if (res.status === 409) {
-        throw new SignupError('이미 가입된 이메일입니다.', true);
-      }
-      const message = await readErrorMessage(res, '회원가입에 실패했습니다.');
-      throw new SignupError(message, false);
-    }
-    // 가입 성공 → 곧바로 로그인까지(자동 로그인).
-    await login(email, password);
-  }
-
   async function fetchMe(): Promise<AppUser> {
     const res = await apiFetch('/api/me');
     if (!res.ok) throw new Error('사용자 정보 조회 실패');
@@ -112,33 +80,31 @@ export function createAuthClient(config: AuthClientConfig): AuthClient {
   }
 
   async function logout(): Promise<void> {
+    let keycloakLogoutUrl: string | null = null;
     try {
-      await apiFetch('/api/auth/logout', { method: 'POST' });
+      const res = await apiFetch('/api/auth/logout', { method: 'POST' });
+      if (res.ok) {
+        const body = await res.json();
+        keycloakLogoutUrl =
+          typeof body.keycloakLogoutUrl === 'string' ? body.keycloakLogoutUrl : null;
+      }
     } finally {
       setAccessToken(null);
+    }
+    // Keycloak SSO 세션까지 종료하려면 end_session 으로 전체 페이지 이동.
+    if (keycloakLogoutUrl) {
+      window.location.href = keycloakLogoutUrl;
     }
   }
 
   return {
     getAccessToken,
     setAccessToken,
+    loginUrl,
     googleLoginUrl,
     apiFetch,
     tryRefresh,
-    login,
-    signup,
     fetchMe,
     logout,
   };
-}
-
-/** 백엔드 에러 본문에서 사람이 읽을 메시지를 best-effort 로 뽑는다. */
-async function readErrorMessage(res: Response, fallback: string): Promise<string> {
-  try {
-    const body = await res.json();
-    if (body && typeof body.message === 'string' && body.message) return body.message;
-  } catch {
-    /* JSON 이 아니면 fallback */
-  }
-  return fallback;
 }

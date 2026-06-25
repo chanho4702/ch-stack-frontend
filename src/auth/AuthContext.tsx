@@ -6,8 +6,6 @@ interface AuthContextValue {
   user: AppUser | null;
   isAuthenticated: boolean;
   loading: boolean;
-  loginWithPassword: (email: string, password: string) => Promise<void>;
-  signUp: (email: string, password: string) => Promise<void>;
   logout: () => Promise<void>;
 }
 
@@ -47,22 +45,6 @@ export function AuthProvider({
     };
   }, [client]);
 
-  const loginWithPassword = React.useCallback(
-    async (email: string, password: string) => {
-      await client.login(email, password);
-      setUser(await client.fetchMe());
-    },
-    [client],
-  );
-
-  const signUp = React.useCallback(
-    async (email: string, password: string) => {
-      await client.signup(email, password); // 가입 + 자동 로그인
-      setUser(await client.fetchMe());
-    },
-    [client],
-  );
-
   const logout = React.useCallback(async () => {
     await client.logout();
     setUser(null);
@@ -73,11 +55,9 @@ export function AuthProvider({
       user,
       isAuthenticated: !!user,
       loading,
-      loginWithPassword,
-      signUp,
       logout,
     }),
-    [user, loading, loginWithPassword, signUp, logout],
+    [user, loading, logout],
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

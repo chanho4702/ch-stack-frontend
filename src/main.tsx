@@ -4,7 +4,6 @@ import { createBrowserRouter, RouterProvider } from 'react-router-dom';
 import { AuthProvider, ProtectedRoute, GuestRoute } from './auth';
 import { NotificationProvider } from './notifications';
 import LoginPage from './app/pages/LoginPage';
-import SignUpPage from './app/pages/SignUpPage';
 import NotFoundPage from './app/pages/NotFoundPage';
 import RouteErrorPage from './app/pages/RouteErrorPage';
 import AppLayout from './app/components/AppLayout';
@@ -30,15 +29,6 @@ const router = createBrowserRouter([
     element: (
       <GuestRoute fallback={<AuthLoadingScreen />}>
         <LoginPage />
-      </GuestRoute>
-    ),
-    errorElement: <RouteErrorPage />,
-  },
-  {
-    path: '/register',
-    element: (
-      <GuestRoute fallback={<AuthLoadingScreen />}>
-        <SignUpPage />
       </GuestRoute>
     ),
     errorElement: <RouteErrorPage />,
