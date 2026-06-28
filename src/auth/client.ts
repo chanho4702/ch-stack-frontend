@@ -80,20 +80,15 @@ export function createAuthClient(config: AuthClientConfig): AuthClient {
   }
 
   async function logout(): Promise<void> {
-    let keycloakLogoutUrl: string | null = null;
+    // 백엔드가 KC SSO 세션을 서버-서버(백채널)로 끊고 RT 쿠키를 삭제한다.
+    // 프론트는 브라우저 리다이렉트 없이 메모리 AT만 비우면 된다(라우팅 가드가 /login 으로 보냄).
+    // 네트워크 실패해도 로컬 세션은 정리해 사용자를 로그아웃 상태로 만든다.
     try {
-      const res = await apiFetch('/api/auth/logout', { method: 'POST' });
-      if (res.ok) {
-        const body = await res.json();
-        keycloakLogoutUrl =
-          typeof body.keycloakLogoutUrl === 'string' ? body.keycloakLogoutUrl : null;
-      }
+      await apiFetch('/api/auth/logout', { method: 'POST' });
+    } catch {
+      // best-effort: 서버 호출 실패는 무시하고 로컬 정리만 보장
     } finally {
       setAccessToken(null);
-    }
-    // Keycloak SSO 세션까지 종료하려면 end_session 으로 전체 페이지 이동.
-    if (keycloakLogoutUrl) {
-      window.location.href = keycloakLogoutUrl;
     }
   }
 
