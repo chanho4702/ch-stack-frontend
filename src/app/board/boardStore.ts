@@ -1,136 +1,108 @@
-// 게시판 데이터 스토어. 데모 인증과 동일하게 localStorage 에 저장합니다.
-// 추후 이 함수들 내부를 실제 API 호출로 교체하면 됩니다.
+// 게시판 데이터 레이어 — board-service(:9100) REST 호출.
+//
+// 인증: board API 호출은 별도 인증 인스턴스를 만들지 않고, 기존 authClient(:9000)가
+// 메모리에 들고 있는 access token 을 공유한다. 읽기(GET)는 public 이라 토큰 없이도 되고,
+// 쓰기(POST/PUT/DELETE)만 Bearer 를 붙이며 401 이면 1회 refresh 후 재시도한다.
+// board-service 는 쿠키를 안 쓰므로 credentials:'include' 를 쓰지 않는다(Bearer 전용).
 
-const STORAGE_KEY = 'myfornt.board.posts';
+import { authClient } from '../../auth';
 
+const BASE = (import.meta.env.VITE_BOARD_API_BASE as string).replace(/\/+$/, '');
+
+/** board-service 응답/요청 계약. id 는 숫자, 작성자는 토큰에서 서버가 박는다(authorName). */
 export interface Post {
-  id: string;
+  id: number;
   title: string;
-  author: string;
   content: string;
-  views: number;
+  authorId: number;
+  authorName: string;
   createdAt: string; // ISO
   updatedAt: string; // ISO
 }
 
+/** 목록용 요약 DTO(PostSummaryResponse). */
+export interface PostSummary {
+  id: number;
+  title: string;
+  authorName: string;
+  createdAt: string; // ISO
+}
+
 export interface PostInput {
   title: string;
-  author: string;
   content: string;
 }
 
-const seedPosts = (): Post[] => {
-  const now = Date.now();
-  const make = (i: number, title: string, author: string, content: string): Post => ({
-    id: crypto.randomUUID(),
-    title,
-    author,
-    content,
-    views: Math.floor(Math.random() * 50),
-    createdAt: new Date(now - i * 86_400_000).toISOString(),
-    updatedAt: new Date(now - i * 86_400_000).toISOString(),
-  });
-  return [
-    make(
-      0,
-      '게시판에 오신 것을 환영합니다 🎉',
-      '관리자',
-      '이 게시판은 myFornt MSA 프론트 템플릿의 기본 CRUD 예제입니다.\n\n글 등록/조회/수정/삭제, 검색, 페이지네이션, 조회수 기능이 들어 있습니다. 데이터는 브라우저 localStorage 에 저장되니 새로고침해도 유지됩니다.',
-    ),
-    make(
-      1,
-      '글쓰기 버튼으로 새 글을 등록해보세요',
-      'Riley Carter',
-      '우측 상단의 "글쓰기" 버튼을 누르면 작성 폼으로 이동합니다. 제목과 내용은 필수입니다.',
-    ),
-    make(
-      2,
-      '제목으로 검색할 수 있어요',
-      'dev',
-      '목록 상단 검색창에 키워드를 입력하면 제목 기준으로 필터링됩니다.',
-    ),
-    make(
-      3,
-      'MUI Table 기반 심플 게시판',
-      'dev',
-      '목록은 MUI Table 로 구현되어 있어 컬럼을 추가하거나 스타일을 바꾸기 쉽습니다.',
-    ),
-  ];
-};
+/** Spring Data Page 응답(필요한 필드만). */
+export interface Page<T> {
+  content: T[];
+  totalPages: number;
+  totalElements: number;
+  number: number; // 현재 페이지(0-base)
+  size: number;
+}
 
-function read(): Post[] {
-  try {
-    const raw = localStorage.getItem(STORAGE_KEY);
-    if (!raw) {
-      const seeded = seedPosts();
-      write(seeded);
-      return seeded;
-    }
-    return JSON.parse(raw) as Post[];
-  } catch {
-    return [];
+/** 상태코드를 들고 다니는 에러 — 페이지에서 404/403 을 구분해 처리한다. */
+export class ApiError extends Error {
+  constructor(public status: number, message: string) {
+    super(message);
+    this.name = 'ApiError';
   }
 }
 
-function write(posts: Post[]): void {
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(posts));
-}
-
-/** 최신순(작성일 내림차순) 전체 목록 */
-export function listPosts(): Post[] {
-  return read().sort(
-    (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime(),
-  );
-}
-
-export function getPost(id: string): Post | undefined {
-  return read().find((p) => p.id === id);
-}
-
-export function createPost(input: PostInput): Post {
-  const posts = read();
-  const nowIso = new Date().toISOString();
-  const post: Post = {
-    id: crypto.randomUUID(),
-    title: input.title.trim(),
-    author: input.author.trim() || '익명',
-    content: input.content.trim(),
-    views: 0,
-    createdAt: nowIso,
-    updatedAt: nowIso,
+async function boardFetch(path: string, init: RequestInit = {}): Promise<Response> {
+  const doFetch = () => {
+    const headers = new Headers(init.headers);
+    const at = authClient.getAccessToken();
+    if (at) headers.set('Authorization', `Bearer ${at}`);
+    return fetch(`${BASE}${path}`, { ...init, headers });
   };
-  write([post, ...posts]);
-  return post;
+  let res = await doFetch();
+  if (res.status === 401 && (await authClient.tryRefresh())) {
+    res = await doFetch();
+  }
+  return res;
 }
 
-export function updatePost(id: string, input: PostInput): Post | undefined {
-  const posts = read();
-  const idx = posts.findIndex((p) => p.id === id);
-  if (idx === -1) {
-    return undefined;
-  }
-  const updated: Post = {
-    ...posts[idx],
-    title: input.title.trim(),
-    author: input.author.trim() || '익명',
-    content: input.content.trim(),
-    updatedAt: new Date().toISOString(),
+function jsonInit(method: string, body: unknown): RequestInit {
+  return {
+    method,
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(body),
   };
-  posts[idx] = updated;
-  write(posts);
-  return updated;
 }
 
-export function deletePost(id: string): void {
-  write(read().filter((p) => p.id !== id));
+/** 최신순(createdAt DESC, 서버 기본 정렬) 페이지 조회. page 는 0-base. */
+export async function listPosts(page: number, size = 10): Promise<Page<PostSummary>> {
+  const res = await boardFetch(`/api/posts?page=${page}&size=${size}`);
+  if (!res.ok) throw new ApiError(res.status, '목록을 불러오지 못했습니다.');
+  return (await res.json()) as Page<PostSummary>;
 }
 
-export function incrementViews(id: string): void {
-  const posts = read();
-  const idx = posts.findIndex((p) => p.id === id);
-  if (idx === -1) {
-    return;
-  }
-  posts[idx] = { ...posts[idx], views: posts[idx].views + 1 };
-  write(posts);
+export async function getPost(id: number): Promise<Post> {
+  const res = await boardFetch(`/api/posts/${id}`);
+  if (res.status === 404) throw new ApiError(404, '존재하지 않는 글입니다.');
+  if (!res.ok) throw new ApiError(res.status, '글을 불러오지 못했습니다.');
+  return (await res.json()) as Post;
+}
+
+export async function createPost(input: PostInput): Promise<Post> {
+  const res = await boardFetch('/api/posts', jsonInit('POST', input));
+  if (res.status === 401) throw new ApiError(401, '로그인이 필요합니다.');
+  if (!res.ok) throw new ApiError(res.status, '등록에 실패했습니다.');
+  return (await res.json()) as Post;
+}
+
+export async function updatePost(id: number, input: PostInput): Promise<Post> {
+  const res = await boardFetch(`/api/posts/${id}`, jsonInit('PUT', input));
+  if (res.status === 403) throw new ApiError(403, '수정 권한이 없습니다.');
+  if (res.status === 404) throw new ApiError(404, '존재하지 않는 글입니다.');
+  if (!res.ok) throw new ApiError(res.status, '수정에 실패했습니다.');
+  return (await res.json()) as Post;
+}
+
+export async function deletePost(id: number): Promise<void> {
+  const res = await boardFetch(`/api/posts/${id}`, { method: 'DELETE' });
+  if (res.status === 403) throw new ApiError(403, '삭제 권한이 없습니다.');
+  if (res.status !== 204 && !res.ok) throw new ApiError(res.status, '삭제에 실패했습니다.');
 }
