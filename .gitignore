@@ -14,3 +14,6 @@ dist-ssr
 .idea
 .DS_Store
 *.tsbuildinfo
+
+# 세션 작업 문서 (설계문서는 Obsidian 보관)
+_workspace/

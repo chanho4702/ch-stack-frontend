@@ -12,7 +12,15 @@ import DashboardHome from './app/pages/DashboardHome';
 import BoardListPage from './app/board/BoardListPage';
 import BoardDetailPage from './app/board/BoardDetailPage';
 import BoardFormPage from './app/board/BoardFormPage';
+import DesignsLayout from './app/designs/DesignsLayout';
+import DesignsHome from './app/designs/DesignsHome';
+import DesignsDetailPage from './app/designs/DesignsDetailPage';
+import DesignsFormPage from './app/designs/DesignsFormPage';
+import ProfileListPage from './app/profile/ProfileListPage';
+import ProfileDetailPage from './app/profile/ProfileDetailPage';
+import ProfileFormPage from './app/profile/ProfileFormPage';
 import Home from './pages/Home';
+import TemplatesHub from './pages/TemplatesHub';
 import ComponentsCatalog from './pages/ComponentsCatalog';
 import ComponentsShowcase from './pages/ComponentsShowcase';
 // --- 참고 자료(reference): MUI 공식 템플릿 그대로. src/context/templates ---
@@ -49,6 +57,59 @@ const router = createBrowserRouter([
       { path: 'board/:id/edit', element: <BoardFormPage /> },
     ],
   },
+
+  // 나의 설계 문서 — Confluence 스타일 중첩 라우트 (레이아웃 + Outlet)
+  // 조회(홈/상세) 공개, 작성/수정은 ProtectedRoute
+  {
+    path: '/designs',
+    element: <DesignsLayout />,
+    errorElement: <RouteErrorPage />,
+    children: [
+      { index: true, element: <DesignsHome /> },
+      {
+        path: 'new',
+        element: (
+          <ProtectedRoute fallback={<AuthLoadingScreen />}>
+            <DesignsFormPage />
+          </ProtectedRoute>
+        ),
+      },
+      { path: ':id', element: <DesignsDetailPage /> },
+      {
+        path: ':id/edit',
+        element: (
+          <ProtectedRoute fallback={<AuthLoadingScreen />}>
+            <DesignsFormPage />
+          </ProtectedRoute>
+        ),
+      },
+    ],
+  },
+
+  // 자기소개 및 이력 — 조회 공개, 작성/수정은 인증 필요
+  { path: '/profile', element: <ProfileListPage />, errorElement: <RouteErrorPage /> },
+  {
+    path: '/profile/new',
+    element: (
+      <ProtectedRoute fallback={<AuthLoadingScreen />}>
+        <ProfileFormPage />
+      </ProtectedRoute>
+    ),
+    errorElement: <RouteErrorPage />,
+  },
+  { path: '/profile/:id', element: <ProfileDetailPage />, errorElement: <RouteErrorPage /> },
+  {
+    path: '/profile/:id/edit',
+    element: (
+      <ProtectedRoute fallback={<AuthLoadingScreen />}>
+        <ProfileFormPage />
+      </ProtectedRoute>
+    ),
+    errorElement: <RouteErrorPage />,
+  },
+
+  // 탬플릿 허브 (기존 MUI 템플릿·쇼케이스·카탈로그 통합 진입점)
+  { path: '/templates', element: <TemplatesHub />, errorElement: <RouteErrorPage /> },
 
   // 컴포넌트 레퍼런스 / 라이브 쇼케이스
   { path: '/components', element: <ComponentsCatalog /> },
