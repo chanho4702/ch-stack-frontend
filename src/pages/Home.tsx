@@ -30,14 +30,6 @@ const GITHUB_URL = 'https://github.com/chanho4702';
 const CONTACT_EMAIL = 'chanho470@naver.com';
 const PORTFOLIO_URL = 'https://oxidized-tile-0f2.notion.site/9bd7653948f34869ac67163d4bf40a89';
 
-// 신뢰 지표 — 숫자로 파는 섹션. 모두 이력서 확정 수치.
-const metrics = [
-  { value: '2회', label: '장관상 수상 · 2024' },
-  { value: '3,000건', label: '업무 이력 자동 이관' },
-  { value: '30개', label: '보안 솔루션 운영 사이트' },
-  { value: '4년 4개월', label: '엔지니어링 경력' },
-];
-
 // 역량을 서비스처럼 — "무엇을 해드립니다" 한 줄 + 근거 한 줄.
 const services = [
   {
@@ -117,12 +109,10 @@ const caseStudies: CaseStudy[] = [
   },
 ];
 
-// 연혁 — 연도 중심 한 줄.
+// 커리어 — 재직 회사만 (타임로그).
 const history = [
-  { year: '2021', text: '모아소프트 인턴' },
-  { year: '2022', text: '마크애니 — 보안 솔루션 구축·운영, 레거시 SPA 전면 전환' },
-  { year: '2024.12', text: '장관상 2회 수상 (A-RMS)' },
-  { year: '2025.12', text: '디무브 — 서버리스 SaaS RMS 플랫폼' },
+  { year: '2025.12 ~ 재직중', text: '디무브 — 서버리스 SaaS RMS 플랫폼 설계·구현' },
+  { year: '2022.05 ~ 2025.12', text: '마크애니 — 보안 솔루션 구축·운영, 레거시 SPA 전면 전환' },
 ];
 
 // 기술 스택 — 보조 섹션으로 강등. 이력서 스킬 기준.
@@ -272,25 +262,33 @@ export default function Home(props: { disableCustomTheme?: boolean }) {
         </Container>
       </Box>
 
-      {/* ── 신뢰 지표 바 (signature) ─────────────────── */}
-      <Box component="section" sx={{ bgcolor: 'primary.main', color: 'primary.contrastText' }}>
-        <Container maxWidth="lg" sx={{ py: { xs: 5, md: 6 } }}>
-          <Grid container spacing={{ xs: 3, md: 2 }}>
-            {metrics.map((m) => (
-              <Grid key={m.label} size={{ xs: 6, md: 3 }}>
+      {/* ── 커리어 (타임로그) ────────────────────────── */}
+      <Box component="section" sx={{ bgcolor: 'background.paper' }}>
+        <Container maxWidth="lg" sx={{ py: { xs: 5, md: 7 } }}>
+          <Eyebrow>CAREER</Eyebrow>
+          <Box sx={{ maxWidth: 760, mt: 2 }}>
+            {history.map((h, i) => (
+              <Stack
+                key={h.year}
+                direction={{ xs: 'column', sm: 'row' }}
+                spacing={{ xs: 0.5, sm: 3 }}
+                sx={{
+                  py: 2.5,
+                  borderTop: i === 0 ? '1px solid' : 0,
+                  borderBottom: '1px solid',
+                  borderColor: 'divider',
+                  alignItems: { sm: 'baseline' },
+                }}
+              >
                 <Typography
-                  sx={{ fontWeight: 800, lineHeight: 1, fontSize: 'clamp(2rem, 5vw, 3rem)' }}
+                  sx={{ minWidth: 168, fontWeight: 800, color: 'primary.main', fontVariantNumeric: 'tabular-nums' }}
                 >
-                  {m.value}
+                  {h.year}
                 </Typography>
-                <Typography
-                  sx={{ mt: 1, fontSize: '0.875rem', opacity: 0.85, fontWeight: 500 }}
-                >
-                  {m.label}
-                </Typography>
-              </Grid>
+                <Typography sx={{ color: 'text.primary' }}>{h.text}</Typography>
+              </Stack>
             ))}
-          </Grid>
+          </Box>
         </Container>
       </Box>
 
@@ -410,39 +408,6 @@ export default function Home(props: { disableCustomTheme?: boolean }) {
               </Grid>
             ))}
           </Stack>
-        </Container>
-      </Box>
-
-      {/* ── 연혁 ─────────────────────────────────────── */}
-      <Box component="section">
-        <Container maxWidth="lg" sx={{ py: { xs: 8, md: 12 } }}>
-          <Eyebrow>TIMELINE</Eyebrow>
-          <Typography variant="h4" component="h2" sx={{ fontWeight: 700, mt: 1.5, mb: 5 }}>
-            연혁
-          </Typography>
-          <Box sx={{ maxWidth: 760 }}>
-            {history.map((h, i) => (
-              <Stack
-                key={h.year}
-                direction={{ xs: 'column', sm: 'row' }}
-                spacing={{ xs: 0.5, sm: 3 }}
-                sx={{
-                  py: 2.5,
-                  borderTop: i === 0 ? '1px solid' : 0,
-                  borderBottom: '1px solid',
-                  borderColor: 'divider',
-                  alignItems: { sm: 'baseline' },
-                }}
-              >
-                <Typography
-                  sx={{ minWidth: 88, fontWeight: 800, color: 'primary.main', fontVariantNumeric: 'tabular-nums' }}
-                >
-                  {h.year}
-                </Typography>
-                <Typography sx={{ color: 'text.primary' }}>{h.text}</Typography>
-              </Stack>
-            ))}
-          </Box>
         </Container>
       </Box>
 
