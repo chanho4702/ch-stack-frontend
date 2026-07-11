@@ -98,10 +98,15 @@ export default function BoardFormPage() {
 
   return (
     <Box sx={{ width: '100%', maxWidth: 900 }}>
-      <Typography variant="h5" component="h1" sx={{ fontWeight: 600, mb: 2 }}>
-        {isEdit ? '글 수정' : '글쓰기'}
-      </Typography>
-      <Paper variant="outlined" sx={{ p: { xs: 2, md: 3 } }}>
+      <Box sx={{ mb: 3 }}>
+        <Typography variant="h5" component="h1" sx={{ fontWeight: 700 }}>
+          {isEdit ? '글 수정' : '글쓰기'}
+        </Typography>
+        <Typography variant="body2" sx={{ color: 'text.secondary', mt: 0.5 }}>
+          제목과 내용을 입력한 뒤 저장하세요.
+        </Typography>
+      </Box>
+      <Paper variant="outlined" sx={{ p: { xs: 2.5, md: 4 } }}>
         <Box component="form" onSubmit={handleSubmit} noValidate>
           <Stack spacing={2.5}>
             <TextField

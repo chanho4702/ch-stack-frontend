@@ -95,15 +95,19 @@ export default function BoardDetailPage() {
 
   return (
     <Box sx={{ width: '100%', maxWidth: 900 }}>
-      <Paper variant="outlined" sx={{ p: { xs: 2, md: 4 } }}>
-        <Typography variant="h5" component="h1" sx={{ fontWeight: 700, mb: 1 }}>
+      <Paper variant="outlined" sx={{ p: { xs: 2.5, md: 4 } }}>
+        <Typography variant="h5" component="h1" sx={{ fontWeight: 700, mb: 1.5 }}>
           {post.title}
         </Typography>
-        <Stack direction="row" spacing={2} sx={{ color: 'text.secondary', flexWrap: 'wrap' }}>
+        <Stack
+          direction="row"
+          spacing={2}
+          sx={{ color: 'text.secondary', flexWrap: 'wrap', alignItems: 'center' }}
+        >
           <Typography variant="body2">작성자 {post.authorName}</Typography>
           <Typography variant="body2">{new Date(post.createdAt).toLocaleString('ko-KR')}</Typography>
         </Stack>
-        <Divider sx={{ my: 2 }} />
+        <Divider sx={{ my: 2.5 }} />
         <Typography
           variant="body1"
           sx={{ whiteSpace: 'pre-wrap', minHeight: 160, lineHeight: 1.8 }}
