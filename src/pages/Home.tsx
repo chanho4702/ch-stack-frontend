@@ -9,6 +9,8 @@ import Typography from '@mui/material/Typography';
 import Button from '@mui/material/Button';
 import Card from '@mui/material/Card';
 import CardContent from '@mui/material/CardContent';
+import CardMedia from '@mui/material/CardMedia';
+import Avatar from '@mui/material/Avatar';
 import Chip from '@mui/material/Chip';
 import Grid from '@mui/material/Grid';
 import Link from '@mui/material/Link';
@@ -149,6 +151,8 @@ interface Project {
   summary: string;
   tags: string[];
   icon: React.ReactNode;
+  image?: string;
+  imageAlt?: string;
 }
 
 const projects: Project[] = [
@@ -158,6 +162,8 @@ const projects: Project[] = [
       'Elasticsearch 기반 프로젝트 분석 시스템. ALM/Jira 데이터를 수집·적재하고 시계열 인덱스·집계 쿼리로 진행률·인력 활용률·ROI를 실시간 시각화합니다. 두 개의 장관상 수상작.',
     tags: ['Elasticsearch', 'Kibana', 'Spring', 'ALM 데이터 분석'],
     icon: <InsightsRoundedIcon fontSize="large" />,
+    image: '/arms-architecture.png',
+    imageAlt: 'A-RMS 시스템 아키텍처 다이어그램',
   },
   {
     title: 'MSA Platform Template',
@@ -165,6 +171,8 @@ const projects: Project[] = [
       'Spring Boot 4 · Spring Cloud 기반 마이크로서비스 골격. Eureka 서비스 디스커버리, Gateway 라우팅, Keycloak OIDC 인증, board-service 도메인으로 구성했습니다.',
     tags: ['Spring Cloud Gateway', 'Eureka', 'Keycloak OIDC', 'Resilience4j'],
     icon: <HubRoundedIcon fontSize="large" />,
+    image: '/msa-architecture.jpg',
+    imageAlt: 'MSA 스타터 템플릿 아키텍처 다이어그램',
   },
   {
     title: 'Chanho Design System',
@@ -241,7 +249,12 @@ export default function Home(props: { disableCustomTheme?: boolean }) {
         }}
       >
         <Container maxWidth="lg" sx={{ pt: { xs: 8, md: 14 }, pb: { xs: 6, md: 10 } }}>
-          <Stack spacing={3} sx={{ maxWidth: 820 }}>
+          <Stack
+            direction={{ xs: 'column-reverse', md: 'row' }}
+            spacing={{ xs: 4, md: 6 }}
+            sx={{ alignItems: { md: 'center' }, justifyContent: 'space-between' }}
+          >
+          <Stack spacing={3} sx={{ maxWidth: 820, flex: 1 }}>
             <Chip
               icon={<GitHubIcon />}
               label="@chanho4702"
@@ -308,6 +321,20 @@ export default function Home(props: { disableCustomTheme?: boolean }) {
               </Button>
             </Stack>
           </Stack>
+            <Avatar
+              alt="김찬호 프로필 사진"
+              src="/profile.png"
+              sx={{
+                width: { xs: 132, md: 208 },
+                height: { xs: 132, md: 208 },
+                flexShrink: 0,
+                alignSelf: { xs: 'flex-start', md: 'center' },
+                boxShadow: 4,
+                border: '4px solid',
+                borderColor: 'background.paper',
+              }}
+            />
+          </Stack>
         </Container>
       </Box>
 
@@ -348,6 +375,32 @@ export default function Home(props: { disableCustomTheme?: boolean }) {
               </Grid>
             ))}
           </Grid>
+          {/* 수상 발표 공고 콜라주 — 클릭 시 원본 새 탭. 흰 배경이 다크에서 튀지 않게 흰 프레임+테두리. */}
+          <Box
+            component="a"
+            href="/arms-award.png"
+            target="_blank"
+            rel="noopener"
+            sx={{
+              display: 'block',
+              mt: 3,
+              mx: 'auto',
+              maxWidth: 480,
+              borderRadius: 2,
+              border: '1px solid',
+              borderColor: 'divider',
+              bgcolor: 'common.white',
+              overflow: 'hidden',
+            }}
+          >
+            <Box
+              component="img"
+              src="/arms-award.png"
+              alt="A-RMS 수상 발표 공고 — 2024 대한민국 SW기술 대상 · 공개SW 개발자대회 대상"
+              loading="lazy"
+              sx={{ display: 'block', width: '100%', height: 'auto' }}
+            />
+          </Box>
         </Box>
 
         {/* ── 경력 ─────────────────────────────────────── */}
@@ -447,9 +500,34 @@ export default function Home(props: { disableCustomTheme?: boolean }) {
           <Grid container spacing={3}>
             {projects.map((project) => (
               <Grid key={project.title} size={{ xs: 12, sm: 6 }}>
-                <Card variant="outlined" sx={{ height: '100%' }}>
+                <Card
+                  variant="outlined"
+                  sx={{ height: '100%', display: 'flex', flexDirection: 'column' }}
+                >
+                  {project.image && (
+                    // 아키텍처 다이어그램 — 흰 배경이 다크 카드에서 튀지 않게 흰 프레임+테두리+radius.
+                    <Box sx={{ p: 1.5, pb: 0 }}>
+                      <Box
+                        sx={{
+                          border: '1px solid',
+                          borderColor: 'divider',
+                          borderRadius: 1.5,
+                          overflow: 'hidden',
+                          bgcolor: 'common.white',
+                        }}
+                      >
+                        <CardMedia
+                          component="img"
+                          image={project.image}
+                          alt={project.imageAlt}
+                          loading="lazy"
+                          sx={{ width: '100%', height: 184, objectFit: 'contain', display: 'block' }}
+                        />
+                      </Box>
+                    </Box>
+                  )}
                   <CardContent
-                    sx={{ p: 3, height: '100%', display: 'flex', flexDirection: 'column' }}
+                    sx={{ p: 3, flexGrow: 1, display: 'flex', flexDirection: 'column' }}
                   >
                     <Box sx={{ color: 'primary.main', mb: 1.5 }}>{project.icon}</Box>
                     <Typography variant="h6" component="h3" sx={{ fontWeight: 700, mb: 1 }}>
