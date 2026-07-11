@@ -30,69 +30,75 @@ const defaultTheme = createTheme();
 
 const customShadows: Shadows = [...defaultTheme.shadows];
 
+// 스틸 블루 브랜드 램프 — @chanho 디자인 시스템(packages/tokens palette.ts)의 blue 스케일과 동일.
+// alm-front / wiki-front 형제 프로젝트와 브랜드 색을 맞추기 위해 hex 로 교체(MUI 는 hex 허용).
 export const brand = {
-  50: 'hsl(210, 100%, 95%)',
-  100: 'hsl(210, 100%, 92%)',
-  200: 'hsl(210, 100%, 80%)',
-  300: 'hsl(210, 100%, 65%)',
-  400: 'hsl(210, 98%, 48%)',
-  500: 'hsl(210, 98%, 42%)',
-  600: 'hsl(210, 98%, 55%)',
-  700: 'hsl(210, 100%, 35%)',
-  800: 'hsl(210, 100%, 16%)',
-  900: 'hsl(210, 100%, 21%)',
+  50: '#EAF2FC',
+  100: '#D3E3F8',
+  200: '#A6C8F1',
+  300: '#6FA5E7',
+  400: '#3F84DC',
+  500: '#1B66C9',
+  600: '#124FA3',
+  700: '#0C3B7D',
+  800: '#082A5C',
+  900: '#051D40',
 };
 
+// 쿨 그레이 — 디자인 시스템 gray 스케일(50–900) 매핑.
 export const gray = {
-  50: 'hsl(220, 35%, 97%)',
-  100: 'hsl(220, 30%, 94%)',
-  200: 'hsl(220, 20%, 88%)',
-  300: 'hsl(220, 20%, 80%)',
-  400: 'hsl(220, 20%, 65%)',
-  500: 'hsl(220, 20%, 42%)',
-  600: 'hsl(220, 20%, 35%)',
-  700: 'hsl(220, 20%, 25%)',
-  800: 'hsl(220, 30%, 6%)',
-  900: 'hsl(220, 35%, 3%)',
+  50: '#F7F8FA',
+  100: '#EFF1F4',
+  200: '#DFE3E8',
+  300: '#C4CAD3',
+  400: '#9AA3B0',
+  500: '#707A89',
+  600: '#525D6E',
+  700: '#3A4453',
+  800: '#252E3B',
+  900: '#141B25',
 };
 
+// success — 디자인 시스템 green 계열(500 #17824F / 다크 400 #4CB782). 50·200·800 은 램프 보간.
 export const green = {
-  50: 'hsl(120, 80%, 98%)',
-  100: 'hsl(120, 75%, 94%)',
-  200: 'hsl(120, 75%, 87%)',
-  300: 'hsl(120, 61%, 77%)',
-  400: 'hsl(120, 44%, 53%)',
-  500: 'hsl(120, 59%, 30%)',
-  600: 'hsl(120, 70%, 25%)',
-  700: 'hsl(120, 75%, 16%)',
-  800: 'hsl(120, 84%, 10%)',
-  900: 'hsl(120, 87%, 6%)',
+  50: '#EAF7F0',
+  100: '#DFF2E8',
+  200: '#A8DEC0',
+  300: '#63C68F',
+  400: '#4CB782',
+  500: '#17824F',
+  600: '#12693F',
+  700: '#0E5232',
+  800: '#0E4429',
+  900: '#143A28',
 };
 
+// warning — 디자인 시스템 orange 계열(500 #A05E03 / 다크 400 #E2A33D). 50·200·800 은 램프 보간.
 export const orange = {
-  50: 'hsl(45, 100%, 97%)',
-  100: 'hsl(45, 92%, 90%)',
-  200: 'hsl(45, 94%, 80%)',
-  300: 'hsl(45, 90%, 65%)',
-  400: 'hsl(45, 90%, 40%)',
-  500: 'hsl(45, 90%, 35%)',
-  600: 'hsl(45, 91%, 25%)',
-  700: 'hsl(45, 94%, 20%)',
-  800: 'hsl(45, 95%, 16%)',
-  900: 'hsl(45, 93%, 12%)',
+  50: '#FDF6E9',
+  100: '#FBEED8',
+  200: '#F5D9A3',
+  300: '#EDB95F',
+  400: '#E2A33D',
+  500: '#A05E03',
+  600: '#7F4B02',
+  700: '#603902',
+  800: '#4E3111',
+  900: '#3E2A10',
 };
 
+// danger — 디자인 시스템 red 계열(500 #C9372C / 다크 400 #EF6E62). 50·800 은 램프 보간.
 export const red = {
-  50: 'hsl(0, 100%, 97%)',
-  100: 'hsl(0, 92%, 90%)',
-  200: 'hsl(0, 94%, 80%)',
-  300: 'hsl(0, 90%, 65%)',
-  400: 'hsl(0, 90%, 40%)',
-  500: 'hsl(0, 90%, 30%)',
-  600: 'hsl(0, 91%, 25%)',
-  700: 'hsl(0, 94%, 18%)',
-  800: 'hsl(0, 95%, 12%)',
-  900: 'hsl(0, 93%, 6%)',
+  50: '#FEF3F2',
+  100: '#FCE9E7',
+  200: '#F7B6B0',
+  300: '#F2938B',
+  400: '#EF6E62',
+  500: '#C9372C',
+  600: '#A22B22',
+  700: '#82231C',
+  800: '#5E211B',
+  900: '#46201D',
 };
 
 export const getDesignTokens = (mode: PaletteMode) => {
@@ -106,13 +112,13 @@ export const getDesignTokens = (mode: PaletteMode) => {
       mode,
       primary: {
         light: brand[200],
-        main: brand[400],
+        main: brand[500], // 라이트: 브랜드 스텝 #1B66C9
         dark: brand[700],
         contrastText: brand[50],
         ...(mode === 'dark' && {
           contrastText: brand[50],
           light: brand[300],
-          main: brand[400],
+          main: brand[400], // 다크: 한 단계 밝은 브랜드 스텝 #3F84DC
           dark: brand[700],
         }),
       },
@@ -130,31 +136,31 @@ export const getDesignTokens = (mode: PaletteMode) => {
       },
       warning: {
         light: orange[300],
-        main: orange[400],
+        main: orange[500], // 라이트: #A05E03
         dark: orange[800],
         ...(mode === 'dark' && {
-          light: orange[400],
-          main: orange[500],
+          light: orange[300],
+          main: orange[400], // 다크: #E2A33D
           dark: orange[700],
         }),
       },
       error: {
         light: red[300],
-        main: red[400],
+        main: red[500], // 라이트: #C9372C
         dark: red[800],
         ...(mode === 'dark' && {
-          light: red[400],
-          main: red[500],
+          light: red[300],
+          main: red[400], // 다크: #EF6E62
           dark: red[700],
         }),
       },
       success: {
         light: green[300],
-        main: green[400],
+        main: green[500], // 라이트: #17824F
         dark: green[800],
         ...(mode === 'dark' && {
-          light: green[400],
-          main: green[500],
+          light: green[300],
+          main: green[400], // 다크: #4CB782
           dark: green[700],
         }),
       },
@@ -163,15 +169,15 @@ export const getDesignTokens = (mode: PaletteMode) => {
       },
       divider: mode === 'dark' ? alpha(gray[700], 0.6) : alpha(gray[300], 0.4),
       background: {
-        default: 'hsl(0, 0%, 99%)',
-        paper: 'hsl(220, 35%, 97%)',
-        ...(mode === 'dark' && { default: gray[900], paper: 'hsl(220, 30%, 7%)' }),
+        default: '#FFFFFF',
+        paper: gray[50],
+        ...(mode === 'dark' && { default: '#14181F', paper: '#1D232C' }),
       },
       text: {
         primary: gray[800],
         secondary: gray[600],
         warning: orange[400],
-        ...(mode === 'dark' && { primary: 'hsl(0, 0%, 100%)', secondary: gray[400] }),
+        ...(mode === 'dark' && { primary: '#E7EAEF', secondary: gray[400] }),
       },
       action: {
         hover: alpha(gray[200], 0.2),
@@ -183,7 +189,8 @@ export const getDesignTokens = (mode: PaletteMode) => {
       },
     },
     typography: {
-      fontFamily: 'Inter, sans-serif',
+      fontFamily:
+      "'Pretendard Variable', Pretendard, 'Noto Sans KR', -apple-system, BlinkMacSystemFont, system-ui, Roboto, 'Helvetica Neue', 'Segoe UI', 'Apple SD Gothic Neo', sans-serif",
       h1: {
         fontSize: defaultTheme.typography.pxToRem(48),
         fontWeight: 600,
@@ -243,7 +250,7 @@ export const colorSchemes = {
     palette: {
       primary: {
         light: brand[200],
-        main: brand[400],
+        main: brand[500], // 브랜드 스텝 #1B66C9
         dark: brand[700],
         contrastText: brand[50],
       },
@@ -255,17 +262,17 @@ export const colorSchemes = {
       },
       warning: {
         light: orange[300],
-        main: orange[400],
+        main: orange[500], // #A05E03
         dark: orange[800],
       },
       error: {
         light: red[300],
-        main: red[400],
+        main: red[500], // #C9372C
         dark: red[800],
       },
       success: {
         light: green[300],
-        main: green[400],
+        main: green[500], // #17824F
         dark: green[800],
       },
       grey: {
@@ -273,8 +280,8 @@ export const colorSchemes = {
       },
       divider: alpha(gray[300], 0.4),
       background: {
-        default: 'hsl(0, 0%, 99%)',
-        paper: 'hsl(220, 35%, 97%)',
+        default: '#FFFFFF',
+        paper: gray[50],
       },
       text: {
         primary: gray[800],
@@ -294,7 +301,7 @@ export const colorSchemes = {
       primary: {
         contrastText: brand[50],
         light: brand[300],
-        main: brand[400],
+        main: brand[400], // 한 단계 밝은 브랜드 스텝 #3F84DC
         dark: brand[700],
       },
       info: {
@@ -304,18 +311,18 @@ export const colorSchemes = {
         dark: brand[900],
       },
       warning: {
-        light: orange[400],
-        main: orange[500],
+        light: orange[300],
+        main: orange[400], // #E2A33D
         dark: orange[700],
       },
       error: {
-        light: red[400],
-        main: red[500],
+        light: red[300],
+        main: red[400], // #EF6E62
         dark: red[700],
       },
       success: {
-        light: green[400],
-        main: green[500],
+        light: green[300],
+        main: green[400], // #4CB782
         dark: green[700],
       },
       grey: {
@@ -323,11 +330,11 @@ export const colorSchemes = {
       },
       divider: alpha(gray[700], 0.6),
       background: {
-        default: gray[900],
-        paper: 'hsl(220, 30%, 7%)',
+        default: '#14181F',
+        paper: '#1D232C',
       },
       text: {
-        primary: 'hsl(0, 0%, 100%)',
+        primary: '#E7EAEF',
         secondary: gray[400],
       },
       action: {
