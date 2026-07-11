@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { Link as RouterLink } from 'react-router-dom';
 import { alpha } from '@mui/material/styles';
 import Box from '@mui/material/Box';
@@ -13,15 +14,15 @@ import Avatar from '@mui/material/Avatar';
 import Chip from '@mui/material/Chip';
 import Grid from '@mui/material/Grid';
 import Link from '@mui/material/Link';
+import IconButton from '@mui/material/IconButton';
+import Drawer from '@mui/material/Drawer';
 import GitHubIcon from '@mui/icons-material/GitHub';
 import EmailRoundedIcon from '@mui/icons-material/EmailRounded';
 import LaunchRoundedIcon from '@mui/icons-material/LaunchRounded';
 import ArrowForwardRoundedIcon from '@mui/icons-material/ArrowForwardRounded';
 import ArrowRightAltRoundedIcon from '@mui/icons-material/ArrowRightAltRounded';
-import HubRoundedIcon from '@mui/icons-material/HubRounded';
-import ManageSearchRoundedIcon from '@mui/icons-material/ManageSearchRounded';
-import ShieldRoundedIcon from '@mui/icons-material/ShieldRounded';
-import SmartToyRoundedIcon from '@mui/icons-material/SmartToyRounded';
+import MenuRoundedIcon from '@mui/icons-material/MenuRounded';
+import CloseRoundedIcon from '@mui/icons-material/CloseRounded';
 import AppTheme from '../context/templates/shared-theme/AppTheme';
 import ColorModeIconDropdown from '../context/templates/shared-theme/ColorModeIconDropdown';
 
@@ -30,31 +31,76 @@ const GITHUB_URL = 'https://github.com/chanho4702';
 const CONTACT_EMAIL = 'chanho470@naver.com';
 const PORTFOLIO_URL = 'https://oxidized-tile-0f2.notion.site/9bd7653948f34869ac67163d4bf40a89';
 
-// 역량을 서비스처럼 — "무엇을 해드립니다" 한 줄 + 근거 한 줄.
+// 상단 헤더 내비 — 앵커/라우트/외부 혼합.
+interface NavItem {
+  label: string;
+  href?: string;
+  to?: string;
+  external?: boolean;
+}
+const navItems: NavItem[] = [
+  { label: '제품', href: '#products' },
+  { label: '성과', href: '#work' },
+  { label: '설계 문서', to: '/designs' },
+  { label: '프로필', to: '/profile' },
+  { label: 'GitHub', href: GITHUB_URL, external: true },
+];
+
+// 역량 — "무엇을 해드립니다" 약속 한 줄 + 근거 한 줄. 아이콘 없이 타이포로.
 const services = [
   {
-    icon: <HubRoundedIcon />,
     title: '플랫폼 아키텍처',
     lead: '서비스가 설 토대를 설계합니다.',
     evidence: '서버리스 SaaS(Atlassian Forge)와 Spring Cloud 기반 MSA를 직접 설계·구현.',
   },
   {
-    icon: <ManageSearchRoundedIcon />,
     title: '데이터 엔지니어링 · 관측',
     lead: '결정을 데이터 위에 세웁니다.',
     evidence: 'Elasticsearch 수집·적재, Beats/Logstash 로그 파이프라인, Kibana·Grafana 대시보드.',
   },
   {
-    icon: <ShieldRoundedIcon />,
     title: '운영 · 안정성',
     lead: '멈추지 않게 운영합니다.',
     evidence: 'SLA 기반 장애 대응, 보안 솔루션 30개 사이트 구축·운영.',
   },
   {
-    icon: <SmartToyRoundedIcon />,
     title: 'AI 개발 환경',
     lead: '팀이 더 빠르게 만들게 합니다.',
     evidence: 'Claude Code 에이전트·스킬·MCP 직접 구성, 문서 기반 AI 협업 프로세스.',
+  },
+];
+
+// 제품 — 오픈소스(직접) / 디무브(회사). 설명은 확정 콘텐츠 범위만.
+interface Product {
+  name: string;
+  desc: string;
+  href?: string; // 오픈소스 GitHub
+  badge?: string; // 회사 제품 표기
+}
+const openSourceProducts: Product[] = [
+  { name: 'ALM', desc: 'Jira 스타일 이슈·스프린트 관리.', href: 'https://github.com/chanho4702/ALM' },
+  { name: 'WIKI', desc: 'Confluence 스타일 문서·위키.', href: 'https://github.com/chanho4702/WIKI' },
+  {
+    name: 'Chanho Design System',
+    desc: '스틸 블루 토큰과 Radix 기반 React 컴포넌트 라이브러리.',
+    href: 'https://github.com/chanho4702/design-system',
+  },
+  {
+    name: 'MSA Platform Template',
+    desc: 'Keycloak BFF · 게이트웨이 · 이벤트 기반 MSA 스타터.',
+    href: 'https://github.com/chanho4702/infra-settings',
+  },
+];
+const companyProducts: Product[] = [
+  {
+    name: 'Moves Workforce',
+    desc: 'Jira Cloud와 연동되는 인력·자원 관리 SaaS. Atlassian Forge 서버리스로 구현.',
+    badge: '디무브',
+  },
+  {
+    name: 'Moves Eye',
+    desc: 'Elastic Stack 기반 로그 수집·모니터링·관측 플랫폼.',
+    badge: '디무브',
   },
 ];
 
@@ -68,7 +114,6 @@ interface CaseStudy {
   tags: string[];
   images?: { src: string; alt: string }[];
 }
-
 const caseStudies: CaseStudy[] = [
   {
     eyebrow: 'A-RMS · 장관상 2회 수상작',
@@ -100,8 +145,7 @@ const caseStudies: CaseStudy[] = [
     eyebrow: 'MSA 플랫폼 템플릿',
     title: '서비스를 만드는 게 아니라, 빠르게 만들 수 있는 환경을',
     problem: '새 서비스를 시작할 때마다 인증·게이트웨이·UI를 처음부터 세팅하는 반복이 있었습니다.',
-    solution:
-      'Keycloak BFF 인증과 API 게이트웨이, 자체 디자인 시스템을 하나의 스타터로 묶었습니다.',
+    solution: 'Keycloak BFF 인증과 API 게이트웨이, 자체 디자인 시스템을 하나의 스타터로 묶었습니다.',
     result:
       '퇴근 후·주말 2주 만에 재사용 가능한 MSA 플랫폼 골격을 완성했습니다. 이 소개 페이지도 그 위에서 만들었습니다.',
     tags: ['Keycloak', 'Spring Cloud Gateway', '디자인 시스템', 'MSA'],
@@ -115,36 +159,19 @@ const history = [
   { year: '2022.05 ~ 2025.12', text: '마크애니 — 보안 솔루션 구축·운영, 레거시 SPA 전면 전환' },
 ];
 
-// 기술 스택 — 보조 섹션으로 강등. 이력서 스킬 기준.
+// 기술 스택 — 보조 섹션. 이력서 스킬 기준.
 const techGroups = [
   {
     category: 'Backend',
-    items: [
-      'Spring Boot',
-      'Spring Data JPA',
-      'Spring Batch',
-      'Spring Security',
-      'WebFlux',
-      'Spring Cloud',
-      'Node.js (Forge)',
-      'Kafka',
-      'Redis',
-      'Quartz',
-    ],
+    items: ['Spring Boot', 'Spring Data JPA', 'Spring Batch', 'Spring Security', 'WebFlux', 'Spring Cloud', 'Node.js (Forge)', 'Kafka', 'Redis', 'Quartz'],
   },
-  {
-    category: 'Data · Search',
-    items: ['Elasticsearch', 'Kibana', 'Logstash', 'Beats / Fluentd', 'Grafana', 'MySQL', 'MSSQL'],
-  },
-  {
-    category: 'DevOps · Infra',
-    items: ['Docker', 'Kubernetes', 'Jenkins', 'ArgoCD', 'Spinnaker', 'Nexus', 'SonarQube', 'Keycloak'],
-  },
+  { category: 'Data · Search', items: ['Elasticsearch', 'Kibana', 'Logstash', 'Beats / Fluentd', 'Grafana', 'MySQL', 'MSSQL'] },
+  { category: 'DevOps · Infra', items: ['Docker', 'Kubernetes', 'Jenkins', 'ArgoCD', 'Spinnaker', 'Nexus', 'SonarQube', 'Keycloak'] },
   { category: 'Frontend', items: ['React', 'Vue.js', 'TypeScript', 'MUI', 'TanStack Query'] },
   { category: 'AI', items: ['Spring AI', 'Ollama', 'Claude Code 워크플로'] },
 ];
 
-// /app 밖 개발용 진입점 — 보조 링크.
+// /app 밖 개발용 진입점 — 푸터 보조 링크.
 const devLinks = [
   { to: '/app', label: '서비스 데모' },
   { to: '/designs', label: '설계 문서' },
@@ -153,7 +180,8 @@ const devLinks = [
   { to: '/showcase', label: '컴포넌트 쇼케이스' },
 ];
 
-// 섹션 상단 eyebrow 라벨 — 구조 장치.
+const HEADER_H = 52;
+
 function Eyebrow({ children }: { children: React.ReactNode }) {
   return (
     <Typography
@@ -165,94 +193,202 @@ function Eyebrow({ children }: { children: React.ReactNode }) {
   );
 }
 
-// 화이트 배경 이미지를 다크 카드에서 튀지 않게 감싸는 프레임.
-function DiagramFrame({ src, alt, height }: { src: string; alt: string; height: number }) {
+// 섹션 헤더 — 위계 통일.
+function SectionTitle({ eyebrow, title, caption }: { eyebrow: string; title: string; caption?: string }) {
   return (
-    <Box
-      sx={{
-        border: '1px solid',
-        borderColor: 'divider',
-        borderRadius: 1.5,
-        overflow: 'hidden',
-        bgcolor: 'common.white',
-      }}
-    >
-      <CardMedia
-        component="img"
-        image={src}
-        alt={alt}
-        loading="lazy"
-        sx={{ width: '100%', height, objectFit: 'contain', display: 'block' }}
-      />
+    <Box sx={{ mb: { xs: 5, md: 7 } }}>
+      <Eyebrow>{eyebrow}</Eyebrow>
+      <Typography
+        variant="h4"
+        component="h2"
+        sx={{ fontWeight: 700, mt: 1.5, letterSpacing: '-0.02em', fontSize: 'clamp(1.7rem, 3.5vw, 2.25rem)' }}
+      >
+        {title}
+      </Typography>
+      {caption && (
+        <Typography sx={{ color: 'text.secondary', mt: 1.5, maxWidth: 560 }}>{caption}</Typography>
+      )}
     </Box>
   );
 }
 
+// 화이트 배경 이미지를 다크에서 튀지 않게 감싸는 프레임.
+function DiagramFrame({ src, alt, height }: { src: string; alt: string; height: number }) {
+  return (
+    <Box sx={{ border: '1px solid', borderColor: 'divider', borderRadius: 2, overflow: 'hidden', bgcolor: 'common.white' }}>
+      <CardMedia component="img" image={src} alt={alt} loading="lazy" sx={{ width: '100%', height, objectFit: 'contain', display: 'block' }} />
+    </Box>
+  );
+}
+
+// 제품 카드 — 담백. 기본은 조용하고 hover에서만 강조.
+function ProductCard({ product }: { product: Product }) {
+  return (
+    <Card
+      variant="outlined"
+      sx={{
+        height: '100%',
+        borderColor: 'divider',
+        transition: (theme) => theme.transitions.create(['border-color', 'transform']),
+        '&:hover': { borderColor: 'primary.main', transform: 'translateY(-2px)' },
+      }}
+    >
+      <CardContent sx={{ p: 3, height: '100%', display: 'flex', flexDirection: 'column' }}>
+        <Stack direction="row" spacing={1} sx={{ alignItems: 'center', justifyContent: 'space-between', mb: 1 }}>
+          <Typography variant="h6" sx={{ fontWeight: 700, letterSpacing: '-0.01em' }}>
+            {product.name}
+          </Typography>
+          {product.badge && <Chip label={product.badge} size="small" color="primary" variant="outlined" />}
+        </Stack>
+        <Typography variant="body2" sx={{ color: 'text.secondary', lineHeight: 1.7, flexGrow: 1 }}>
+          {product.desc}
+        </Typography>
+        {product.href ? (
+          <Link
+            href={product.href}
+            target="_blank"
+            rel="noopener"
+            underline="none"
+            sx={{ mt: 2, display: 'inline-flex', alignItems: 'center', gap: 0.5, fontSize: '0.8125rem', fontWeight: 600, color: 'text.secondary', '&:hover': { color: 'primary.main' } }}
+          >
+            <GitHubIcon sx={{ fontSize: 16 }} />
+            소스 보기
+          </Link>
+        ) : (
+          <Typography variant="caption" sx={{ mt: 2, color: 'text.disabled' }}>
+            사내·고객사 제품 · 비공개
+          </Typography>
+        )}
+      </CardContent>
+    </Card>
+  );
+}
+
 export default function Home(props: { disableCustomTheme?: boolean }) {
+  const [navOpen, setNavOpen] = useState(false);
+
+  const renderNavLink = (item: NavItem, onClick?: () => void, big?: boolean) => {
+    const sx = {
+      fontSize: big ? '1.05rem' : '0.85rem',
+      fontWeight: 500,
+      color: 'text.secondary',
+      '&:hover': { color: 'text.primary' },
+    } as const;
+    if (item.to) {
+      return (
+        <Link key={item.label} component={RouterLink} to={item.to} underline="none" onClick={onClick} sx={sx}>
+          {item.label}
+        </Link>
+      );
+    }
+    return (
+      <Link
+        key={item.label}
+        href={item.href}
+        {...(item.external ? { target: '_blank', rel: 'noopener' } : {})}
+        underline="none"
+        onClick={onClick}
+        sx={sx}
+      >
+        {item.label}
+      </Link>
+    );
+  };
+
   return (
     <AppTheme {...props}>
       <CssBaseline enableColorScheme />
-      <Box sx={{ position: 'fixed', top: '1rem', right: '1rem', zIndex: 20 }}>
-        <ColorModeIconDropdown />
+
+      {/* ── 상단 헤더 (Apple 스타일 슬림·반투명) ─────────── */}
+      <Box
+        component="header"
+        sx={{
+          position: 'sticky',
+          top: 0,
+          zIndex: (theme) => theme.zIndex.appBar,
+          backdropFilter: 'saturate(180%) blur(20px)',
+          WebkitBackdropFilter: 'saturate(180%) blur(20px)',
+          bgcolor: (theme) => alpha(theme.palette.background.default, 0.72),
+          borderBottom: '1px solid',
+          borderColor: 'divider',
+        }}
+      >
+        <Container maxWidth="lg">
+          <Stack direction="row" sx={{ height: HEADER_H, alignItems: 'center', justifyContent: 'space-between' }}>
+            <Link href="#top" underline="none" sx={{ fontWeight: 700, letterSpacing: '-0.02em', color: 'text.primary', fontSize: '1rem' }}>
+              chanho.dev
+            </Link>
+
+            {/* 데스크톱 내비 */}
+            <Stack direction="row" spacing={3} sx={{ display: { xs: 'none', md: 'flex' }, alignItems: 'center' }}>
+              {navItems.map((item) => renderNavLink(item))}
+              <ColorModeIconDropdown size="small" />
+            </Stack>
+
+            {/* 모바일 */}
+            <Stack direction="row" spacing={0.5} sx={{ display: { xs: 'flex', md: 'none' }, alignItems: 'center' }}>
+              <ColorModeIconDropdown size="small" />
+              <IconButton onClick={() => setNavOpen(true)} aria-label="메뉴 열기" size="small">
+                <MenuRoundedIcon />
+              </IconButton>
+            </Stack>
+          </Stack>
+        </Container>
       </Box>
+
+      {/* 모바일 내비 Drawer */}
+      <Drawer anchor="right" open={navOpen} onClose={() => setNavOpen(false)}>
+        <Box sx={{ width: 260, p: 2 }}>
+          <Stack direction="row" sx={{ justifyContent: 'flex-end' }}>
+            <IconButton onClick={() => setNavOpen(false)} aria-label="메뉴 닫기">
+              <CloseRoundedIcon />
+            </IconButton>
+          </Stack>
+          <Stack spacing={2.5} sx={{ p: 2, pt: 1 }}>
+            {navItems.map((item) => renderNavLink(item, () => setNavOpen(false), true))}
+          </Stack>
+        </Box>
+      </Drawer>
 
       {/* ── Hero — 가치 제안 ─────────────────────────── */}
       <Box
         component="section"
+        id="top"
         sx={{
           background: (theme) =>
-            `radial-gradient(ellipse 100% 60% at 15% -10%, ${alpha(
+            `radial-gradient(ellipse 90% 55% at 12% -10%, ${alpha(
               theme.palette.primary.main,
-              theme.palette.mode === 'dark' ? 0.24 : 0.1,
+              theme.palette.mode === 'dark' ? 0.2 : 0.08,
             )}, transparent)`,
         }}
       >
-        <Container maxWidth="lg" sx={{ pt: { xs: 9, md: 16 }, pb: { xs: 8, md: 14 } }}>
-          <Stack direction="row" spacing={1.5} sx={{ alignItems: 'center', mb: 3 }}>
-            <Avatar alt="김찬호 프로필 사진" src="/profile.png" sx={{ width: 44, height: 44 }} />
-            <Box>
-              <Typography sx={{ fontWeight: 700, lineHeight: 1.2 }}>김찬호</Typography>
-              <Typography variant="caption" sx={{ color: 'text.secondary' }}>
-                플랫폼 백엔드 엔지니어
-              </Typography>
-            </Box>
+        <Container maxWidth="lg" sx={{ pt: { xs: 10, md: 18 }, pb: { xs: 9, md: 16 } }}>
+          <Stack direction="row" spacing={1.5} sx={{ alignItems: 'center', mb: 4 }}>
+            <Avatar alt="김찬호 프로필 사진" src="/profile.png" sx={{ width: 40, height: 40 }} />
+            <Typography variant="body2" sx={{ color: 'text.secondary' }}>
+              김찬호 · 플랫폼 백엔드 엔지니어
+            </Typography>
           </Stack>
 
-          <Eyebrow>PLATFORM ENGINEERING</Eyebrow>
           <Typography
             component="h1"
-            sx={{
-              mt: 1.5,
-              fontWeight: 800,
-              letterSpacing: '-0.035em',
-              lineHeight: 1.04,
-              fontSize: 'clamp(2.6rem, 7.5vw, 5rem)',
-            }}
+            sx={{ fontWeight: 800, letterSpacing: '-0.04em', lineHeight: 1.02, fontSize: 'clamp(3rem, 9vw, 6rem)' }}
           >
             수작업을{' '}
             <Box component="span" sx={{ color: 'primary.main' }}>
               시스템
             </Box>
-            으로 바꿉니다
+            으로
+            <br />
+            바꿉니다
           </Typography>
           <Typography
-            sx={{
-              mt: 3,
-              maxWidth: 620,
-              color: 'text.secondary',
-              fontSize: 'clamp(1.05rem, 2.2vw, 1.3rem)',
-              lineHeight: 1.6,
-            }}
+            sx={{ mt: 4, maxWidth: 600, color: 'text.secondary', fontSize: 'clamp(1.1rem, 2.2vw, 1.35rem)', lineHeight: 1.6 }}
           >
             플랫폼 설계부터 운영까지 — 데이터 기반 의사결정 체계를 만드는 엔지니어링.
           </Typography>
-          <Stack direction="row" spacing={1.5} sx={{ flexWrap: 'wrap', gap: 1.5, mt: 4 }}>
-            <Button
-              variant="contained"
-              size="large"
-              href="#work"
-              endIcon={<ArrowForwardRoundedIcon />}
-            >
+          <Stack direction="row" spacing={1.5} sx={{ flexWrap: 'wrap', gap: 1.5, mt: 5 }}>
+            <Button variant="contained" size="large" href="#work" endIcon={<ArrowForwardRoundedIcon />}>
               성과 보기
             </Button>
             <Button variant="outlined" size="large" href="#contact">
@@ -264,25 +400,17 @@ export default function Home(props: { disableCustomTheme?: boolean }) {
 
       {/* ── 커리어 (타임로그) ────────────────────────── */}
       <Box component="section" sx={{ bgcolor: 'background.paper' }}>
-        <Container maxWidth="lg" sx={{ py: { xs: 5, md: 7 } }}>
+        <Container maxWidth="lg" sx={{ py: { xs: 6, md: 8 } }}>
           <Eyebrow>CAREER</Eyebrow>
-          <Box sx={{ maxWidth: 760, mt: 2 }}>
+          <Box sx={{ maxWidth: 820, mt: 2.5 }}>
             {history.map((h, i) => (
               <Stack
                 key={h.year}
                 direction={{ xs: 'column', sm: 'row' }}
                 spacing={{ xs: 0.5, sm: 3 }}
-                sx={{
-                  py: 2.5,
-                  borderTop: i === 0 ? '1px solid' : 0,
-                  borderBottom: '1px solid',
-                  borderColor: 'divider',
-                  alignItems: { sm: 'baseline' },
-                }}
+                sx={{ py: 2.75, borderTop: i === 0 ? '1px solid' : 0, borderBottom: '1px solid', borderColor: 'divider', alignItems: { sm: 'baseline' } }}
               >
-                <Typography
-                  sx={{ minWidth: 168, fontWeight: 800, color: 'primary.main', fontVariantNumeric: 'tabular-nums' }}
-                >
+                <Typography sx={{ minWidth: 172, fontWeight: 700, color: 'primary.main', fontVariantNumeric: 'tabular-nums' }}>
                   {h.year}
                 </Typography>
                 <Typography sx={{ color: 'text.primary' }}>{h.text}</Typography>
@@ -294,31 +422,28 @@ export default function Home(props: { disableCustomTheme?: boolean }) {
 
       {/* ── What I do ────────────────────────────────── */}
       <Box component="section">
-        <Container maxWidth="lg" sx={{ py: { xs: 8, md: 12 } }}>
-          <Eyebrow>WHAT I DO</Eyebrow>
-          <Typography variant="h4" component="h2" sx={{ fontWeight: 700, mt: 1.5, mb: 5 }}>
-            무엇을 해드리는가
-          </Typography>
-          <Grid container spacing={3}>
+        <Container maxWidth="lg" sx={{ py: { xs: 9, md: 15 } }}>
+          <SectionTitle eyebrow="WHAT I DO" title="무엇을 해드리는가" />
+          <Grid container spacing={{ xs: 2.5, md: 3 }}>
             {services.map((s) => (
               <Grid key={s.title} size={{ xs: 12, sm: 6 }}>
                 <Card
                   variant="outlined"
                   sx={{
                     height: '100%',
-                    transition: (theme) => theme.transitions.create(['border-color', 'box-shadow']),
-                    '&:hover': { borderColor: 'primary.main', boxShadow: 2 },
+                    borderColor: 'divider',
+                    transition: (theme) => theme.transitions.create(['border-color']),
+                    '&:hover': { borderColor: 'primary.main' },
                   }}
                 >
-                  <CardContent sx={{ p: { xs: 3, md: 3.5 } }}>
-                    <Box sx={{ color: 'primary.main', mb: 2, '& svg': { fontSize: 32 } }}>
-                      {s.icon}
-                    </Box>
-                    <Typography variant="h6" component="h3" sx={{ fontWeight: 700 }}>
+                  <CardContent sx={{ p: { xs: 3, md: 4 } }}>
+                    <Typography variant="overline" sx={{ color: 'text.secondary', letterSpacing: '0.1em' }}>
                       {s.title}
                     </Typography>
-                    <Typography sx={{ mt: 1, fontWeight: 500 }}>{s.lead}</Typography>
-                    <Typography variant="body2" sx={{ mt: 1, color: 'text.secondary', lineHeight: 1.7 }}>
+                    <Typography variant="h6" component="h3" sx={{ fontWeight: 700, mt: 0.5, mb: 1.5 }}>
+                      {s.lead}
+                    </Typography>
+                    <Typography variant="body2" sx={{ color: 'text.secondary', lineHeight: 1.75 }}>
                       {s.evidence}
                     </Typography>
                   </CardContent>
@@ -329,27 +454,92 @@ export default function Home(props: { disableCustomTheme?: boolean }) {
         </Container>
       </Box>
 
-      {/* ── 케이스 스터디 ────────────────────────────── */}
-      <Box component="section" id="work" sx={{ bgcolor: 'background.paper', scrollMarginTop: '1.5rem' }}>
-        <Container maxWidth="lg" sx={{ py: { xs: 8, md: 12 } }}>
-          <Eyebrow>CASE STUDIES</Eyebrow>
-          <Typography variant="h4" component="h2" sx={{ fontWeight: 700, mt: 1.5, mb: 1 }}>
-            문제를 어떻게 시스템으로 바꿨는가
-          </Typography>
-          <Typography sx={{ color: 'text.secondary', mb: 6 }}>
-            문제 → 해결 → 성과.
-          </Typography>
+      {/* ── 제품 (Products) ──────────────────────────── */}
+      <Box component="section" id="products" sx={{ bgcolor: 'background.paper', scrollMarginTop: `${HEADER_H + 8}px` }}>
+        <Container maxWidth="lg" sx={{ py: { xs: 9, md: 15 } }}>
+          <SectionTitle
+            eyebrow="PRODUCTS"
+            title="만든 것들"
+            caption="직접 만든 오픈소스, 회사에서 만든 제품, 그리고 설계 문서."
+          />
 
-          <Stack spacing={{ xs: 5, md: 8 }}>
+          <Typography variant="subtitle2" sx={{ color: 'text.secondary', fontWeight: 700, mb: 2 }}>
+            오픈소스 · 직접 만든 제품
+          </Typography>
+          <Grid container spacing={{ xs: 2.5, md: 3 }}>
+            {openSourceProducts.map((p) => (
+              <Grid key={p.name} size={{ xs: 12, sm: 6, md: 3 }}>
+                <ProductCard product={p} />
+              </Grid>
+            ))}
+          </Grid>
+
+          <Typography variant="subtitle2" sx={{ color: 'text.secondary', fontWeight: 700, mb: 2, mt: { xs: 5, md: 7 } }}>
+            디무브 · 재직 중 개발
+          </Typography>
+          <Grid container spacing={{ xs: 2.5, md: 3 }}>
+            {companyProducts.map((p) => (
+              <Grid key={p.name} size={{ xs: 12, sm: 6 }}>
+                <ProductCard product={p} />
+              </Grid>
+            ))}
+          </Grid>
+
+          {/* 설계 문서 진입 카드 */}
+          <Card
+            variant="outlined"
+            sx={{
+              mt: { xs: 2.5, md: 3 },
+              borderColor: 'divider',
+              transition: (theme) => theme.transitions.create(['border-color']),
+              '&:hover': { borderColor: 'primary.main' },
+            }}
+          >
+            <CardContent
+              component={RouterLink}
+              to="/designs"
+              sx={{
+                p: { xs: 3, md: 4 },
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                gap: 2,
+                textDecoration: 'none',
+                color: 'inherit',
+                flexWrap: 'wrap',
+              }}
+            >
+              <Box>
+                <Typography variant="h6" sx={{ fontWeight: 700 }}>
+                  설계 문서
+                </Typography>
+                <Typography variant="body2" sx={{ color: 'text.secondary', mt: 0.5 }}>
+                  아키텍처 · API · DB 설계 문서 모음.
+                </Typography>
+              </Box>
+              <Box sx={{ display: 'inline-flex', alignItems: 'center', gap: 0.5, color: 'primary.main', fontWeight: 600 }}>
+                열기
+                <ArrowForwardRoundedIcon sx={{ fontSize: 18 }} />
+              </Box>
+            </CardContent>
+          </Card>
+        </Container>
+      </Box>
+
+      {/* ── 케이스 스터디 ────────────────────────────── */}
+      <Box component="section" id="work" sx={{ scrollMarginTop: `${HEADER_H + 8}px` }}>
+        <Container maxWidth="lg" sx={{ py: { xs: 9, md: 15 } }}>
+          <SectionTitle
+            eyebrow="CASE STUDIES"
+            title="문제를 어떻게 시스템으로 바꿨는가"
+            caption="문제 → 해결 → 성과."
+          />
+          <Stack spacing={{ xs: 6, md: 10 }}>
             {caseStudies.map((c, i) => (
-              <Grid key={c.title} container spacing={{ xs: 3, md: 5 }} sx={{ alignItems: 'center' }}>
-                {/* 텍스트 — 이미지 있는 카드는 지그재그로 좌우 교대 */}
-                <Grid
-                  size={{ xs: 12, md: c.images ? 7 : 12 }}
-                  sx={{ order: { md: i % 2 === 1 ? 2 : 1 } }}
-                >
+              <Grid key={c.title} container spacing={{ xs: 3, md: 6 }} sx={{ alignItems: 'center' }}>
+                <Grid size={{ xs: 12, md: c.images ? 7 : 12 }} sx={{ order: { md: i % 2 === 1 ? 2 : 1 } }}>
                   <Eyebrow>{c.eyebrow}</Eyebrow>
-                  <Typography variant="h5" component="h3" sx={{ fontWeight: 700, mt: 1.5, mb: 3, lineHeight: 1.35 }}>
+                  <Typography variant="h5" component="h3" sx={{ fontWeight: 700, mt: 1.5, mb: 3, lineHeight: 1.35, letterSpacing: '-0.01em' }}>
                     {c.title}
                   </Typography>
                   <Stack spacing={2}>
@@ -362,28 +552,12 @@ export default function Home(props: { disableCustomTheme?: boolean }) {
                     ).map(([label, body]) => (
                       <Stack key={label} direction="row" spacing={1.5} sx={{ alignItems: 'flex-start' }}>
                         <Box sx={{ minWidth: 44, pt: 0.25 }}>
-                          <Typography
-                            variant="caption"
-                            sx={{
-                              fontWeight: 700,
-                              color: label === '성과' ? 'primary.main' : 'text.secondary',
-                              letterSpacing: '0.05em',
-                            }}
-                          >
+                          <Typography variant="caption" sx={{ fontWeight: 700, color: label === '성과' ? 'primary.main' : 'text.secondary', letterSpacing: '0.05em' }}>
                             {label}
                           </Typography>
                         </Box>
-                        <ArrowRightAltRoundedIcon
-                          sx={{ color: 'primary.main', flexShrink: 0, opacity: label === '성과' ? 1 : 0.5 }}
-                        />
-                        <Typography
-                          variant="body2"
-                          sx={{
-                            lineHeight: 1.75,
-                            color: label === '성과' ? 'text.primary' : 'text.secondary',
-                            fontWeight: label === '성과' ? 500 : 400,
-                          }}
-                        >
+                        <ArrowRightAltRoundedIcon sx={{ color: 'primary.main', flexShrink: 0, opacity: label === '성과' ? 1 : 0.5 }} />
+                        <Typography variant="body2" sx={{ lineHeight: 1.75, color: label === '성과' ? 'text.primary' : 'text.secondary', fontWeight: label === '성과' ? 500 : 400 }}>
                           {body}
                         </Typography>
                       </Stack>
@@ -413,18 +587,15 @@ export default function Home(props: { disableCustomTheme?: boolean }) {
 
       {/* ── 기술 스택 (보조) ─────────────────────────── */}
       <Box component="section" sx={{ bgcolor: 'background.paper' }}>
-        <Container maxWidth="lg" sx={{ py: { xs: 7, md: 10 } }}>
+        <Container maxWidth="lg" sx={{ py: { xs: 8, md: 12 } }}>
           <Eyebrow>STACK</Eyebrow>
-          <Typography variant="h5" component="h2" sx={{ fontWeight: 700, mt: 1.5, mb: 4 }}>
+          <Typography variant="h5" component="h2" sx={{ fontWeight: 700, mt: 1.5, mb: 5, letterSpacing: '-0.01em' }}>
             기술 스택
           </Typography>
-          <Grid container spacing={{ xs: 3, md: 4 }}>
+          <Grid container spacing={{ xs: 4, md: 5 }}>
             {techGroups.map((group) => (
               <Grid key={group.category} size={{ xs: 12, sm: 6, md: 4 }}>
-                <Typography
-                  variant="subtitle2"
-                  sx={{ color: 'text.secondary', fontWeight: 700, mb: 1.5 }}
-                >
+                <Typography variant="subtitle2" sx={{ color: 'text.secondary', fontWeight: 700, mb: 1.5 }}>
                   {group.category}
                 </Typography>
                 <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.75 }}>
@@ -443,53 +614,31 @@ export default function Home(props: { disableCustomTheme?: boolean }) {
         component="section"
         id="contact"
         sx={{
-          scrollMarginTop: '1.5rem',
+          scrollMarginTop: `${HEADER_H + 8}px`,
           background: (theme) =>
-            `linear-gradient(180deg, transparent, ${alpha(
-              theme.palette.primary.main,
-              theme.palette.mode === 'dark' ? 0.16 : 0.07,
-            )})`,
+            `linear-gradient(180deg, transparent, ${alpha(theme.palette.primary.main, theme.palette.mode === 'dark' ? 0.16 : 0.06)})`,
         }}
       >
-        <Container maxWidth="md" sx={{ py: { xs: 10, md: 14 }, textAlign: 'center' }}>
+        <Container maxWidth="md" sx={{ py: { xs: 11, md: 16 }, textAlign: 'center' }}>
           <Eyebrow>LET&apos;S WORK TOGETHER</Eyebrow>
           <Typography
             variant="h3"
             component="h2"
-            sx={{ fontWeight: 800, mt: 2, mb: 2, letterSpacing: '-0.02em', lineHeight: 1.15 }}
+            sx={{ fontWeight: 800, mt: 2, mb: 2.5, letterSpacing: '-0.025em', lineHeight: 1.12, fontSize: 'clamp(2rem, 5vw, 3rem)' }}
           >
             함께 일할 사람을 찾고 계신가요?
           </Typography>
-          <Typography sx={{ color: 'text.secondary', maxWidth: 520, mx: 'auto', mb: 4, fontSize: '1.05rem' }}>
+          <Typography sx={{ color: 'text.secondary', maxWidth: 520, mx: 'auto', mb: 5, fontSize: '1.05rem', lineHeight: 1.7 }}>
             플랫폼을 설계하고, 데이터로 굴러가게 만들고, 팀이 더 빠르게 만들 환경까지 함께 세울 사람입니다.
           </Typography>
           <Stack direction="row" spacing={1.5} sx={{ justifyContent: 'center', flexWrap: 'wrap', gap: 1.5 }}>
-            <Button
-              variant="contained"
-              size="large"
-              href={`mailto:${CONTACT_EMAIL}`}
-              startIcon={<EmailRoundedIcon />}
-            >
+            <Button variant="contained" size="large" href={`mailto:${CONTACT_EMAIL}`} startIcon={<EmailRoundedIcon />}>
               이메일 보내기
             </Button>
-            <Button
-              variant="outlined"
-              size="large"
-              href={PORTFOLIO_URL}
-              target="_blank"
-              rel="noopener"
-              startIcon={<LaunchRoundedIcon />}
-            >
+            <Button variant="outlined" size="large" href={PORTFOLIO_URL} target="_blank" rel="noopener" startIcon={<LaunchRoundedIcon />}>
               포트폴리오
             </Button>
-            <Button
-              variant="outlined"
-              size="large"
-              href={GITHUB_URL}
-              target="_blank"
-              rel="noopener"
-              startIcon={<GitHubIcon />}
-            >
+            <Button variant="outlined" size="large" href={GITHUB_URL} target="_blank" rel="noopener" startIcon={<GitHubIcon />}>
               GitHub
             </Button>
           </Stack>
@@ -502,11 +651,7 @@ export default function Home(props: { disableCustomTheme?: boolean }) {
       {/* ── 푸터 ─────────────────────────────────────── */}
       <Box component="footer" sx={{ borderTop: '1px solid', borderColor: 'divider' }}>
         <Container maxWidth="lg" sx={{ py: 4 }}>
-          <Stack
-            direction={{ xs: 'column', sm: 'row' }}
-            spacing={2}
-            sx={{ justifyContent: 'space-between', alignItems: { sm: 'center' } }}
-          >
+          <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2} sx={{ justifyContent: 'space-between', alignItems: { sm: 'center' } }}>
             <Typography variant="caption" sx={{ color: 'text.secondary' }}>
               © {new Date().getFullYear()} 김찬호 · Built with React · MUI · 스틸 블루 디자인 시스템
             </Typography>
