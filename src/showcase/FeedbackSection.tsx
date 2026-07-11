@@ -81,7 +81,7 @@ export default function FeedbackSection() {
             <Backdrop
               open={openBackdrop}
               onClick={() => setOpenBackdrop(false)}
-              sx={{ color: '#fff', zIndex: (theme) => theme.zIndex.drawer + 1 }}
+              sx={{ color: 'common.white', zIndex: (theme) => theme.zIndex.drawer + 1 }}
             >
               <CircularProgress color="inherit" />
             </Backdrop>
