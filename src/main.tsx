@@ -20,6 +20,7 @@ import ProfileListPage from './app/profile/ProfileListPage';
 import ProfileDetailPage from './app/profile/ProfileDetailPage';
 import ProfileFormPage from './app/profile/ProfileFormPage';
 import Home from './pages/Home';
+import { ServiceDetailPage, ProductDetailPage } from './pages/landing/DetailPages';
 import TemplatesHub from './pages/TemplatesHub';
 import ComponentsCatalog from './pages/ComponentsCatalog';
 import ComponentsShowcase from './pages/ComponentsShowcase';
@@ -32,6 +33,11 @@ import Dashboard from './context/templates/dashboard/Dashboard';
 const router = createBrowserRouter([
   // 내 서비스 (로그인/회원가입 -> 대시보드)
   { path: '/', element: <Home />, errorElement: <RouteErrorPage /> },
+
+  // 랜딩 카드 상세 — What I do(/services/:slug), 제품(/products/:slug). 조회 공개.
+  { path: '/services/:slug', element: <ServiceDetailPage />, errorElement: <RouteErrorPage /> },
+  { path: '/products/:slug', element: <ProductDetailPage />, errorElement: <RouteErrorPage /> },
+
   {
     path: '/login',
     element: (

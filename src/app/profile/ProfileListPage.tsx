@@ -48,7 +48,7 @@ export default function ProfileListPage() {
         <Avatar sx={{ width: 88, height: 88, fontSize: 36, bgcolor: 'primary.main' }}>
           {initial}
         </Avatar>
-        <Typography variant="h3" component="h1" sx={{ fontWeight: 700 }}>
+        <Typography variant="h3" component="h1" sx={{ fontWeight: 800, letterSpacing: '-0.03em' }}>
           {profileInfo.name}
         </Typography>
         <Typography variant="h6" color="text.secondary" sx={{ fontWeight: 400, maxWidth: 560 }}>
@@ -122,7 +122,11 @@ export default function ProfileListPage() {
               <Card
                 key={d.id}
                 variant="outlined"
-                sx={{ '&:hover': { borderColor: 'primary.main' } }}
+                sx={{
+                  borderColor: 'divider',
+                  transition: (theme) => theme.transitions.create(['border-color']),
+                  '&:hover': { borderColor: 'primary.main' },
+                }}
               >
                 <CardActionArea component={RouterLink} to={`/profile/${d.id}`}>
                   <CardContent sx={{ p: 2.5 }}>

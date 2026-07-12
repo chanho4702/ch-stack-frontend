@@ -56,7 +56,7 @@ export default function ProfileDetailPage() {
     <PublicPageShell maxWidth="md">
       <Box component="article" sx={{ maxWidth: 720, mx: 'auto' }}>
         <Chip label={doc.docType} size="small" color="primary" variant="outlined" sx={{ mb: 2 }} />
-        <Typography variant="h3" component="h1" sx={{ fontWeight: 700, mb: 1 }}>
+        <Typography variant="h3" component="h1" sx={{ fontWeight: 800, mb: 1, letterSpacing: '-0.03em' }}>
           {doc.title}
         </Typography>
         <Typography variant="body2" color="text.secondary">

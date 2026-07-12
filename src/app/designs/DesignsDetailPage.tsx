@@ -70,7 +70,7 @@ export default function DesignsDetailPage() {
         sx={{ justifyContent: 'space-between', alignItems: 'flex-start' }}
       >
         <Box>
-          <Typography variant="h4" component="h1" sx={{ fontWeight: 700, mb: 1 }}>
+          <Typography variant="h4" component="h1" sx={{ fontWeight: 700, mb: 1.5, letterSpacing: '-0.02em' }}>
             {doc.title}
           </Typography>
           <Stack direction="row" spacing={2} sx={{ alignItems: 'center', flexWrap: 'wrap' }}>

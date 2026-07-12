@@ -23,10 +23,10 @@ export default function DesignsHome() {
 
   return (
     <Box sx={{ maxWidth: 1100 }}>
-      <Typography variant="h4" component="h2" sx={{ fontWeight: 700, mb: 0.5 }}>
+      <Typography variant="h4" component="h2" sx={{ fontWeight: 700, mb: 0.75, letterSpacing: '-0.02em' }}>
         설계 문서
       </Typography>
-      <Typography color="text.secondary" sx={{ mb: 3 }}>
+      <Typography color="text.secondary" sx={{ mb: 4 }}>
         최근 업데이트된 문서
       </Typography>
 
@@ -59,9 +59,9 @@ export default function DesignsHome() {
                 variant="outlined"
                 sx={{
                   height: '100%',
-                  transition: (theme) =>
-                    theme.transitions.create(['border-color', 'box-shadow']),
-                  '&:hover': { borderColor: 'primary.main', boxShadow: 2 },
+                  borderColor: 'divider',
+                  transition: (theme) => theme.transitions.create(['border-color']),
+                  '&:hover': { borderColor: 'primary.main' },
                 }}
               >
                 <CardActionArea

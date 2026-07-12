@@ -1,5 +1,6 @@
 import * as React from 'react';
 import { Link as RouterLink, Outlet, useLocation, useNavigate } from 'react-router-dom';
+import { alpha } from '@mui/material/styles';
 import Box from '@mui/material/Box';
 import AppBar from '@mui/material/AppBar';
 import Toolbar from '@mui/material/Toolbar';
@@ -152,8 +153,14 @@ export default function DesignsLayout() {
         <AppBar
           position="fixed"
           color="default"
-          elevation={1}
-          sx={{ zIndex: (t) => t.zIndex.drawer + 1 }}
+          elevation={0}
+          sx={{
+            zIndex: (t) => t.zIndex.drawer + 1,
+            backdropFilter: 'saturate(180%) blur(20px)',
+            bgcolor: (t) => alpha(t.palette.background.default, 0.8),
+            borderBottom: '1px solid',
+            borderColor: 'divider',
+          }}
         >
           <Toolbar>
             <IconButton
