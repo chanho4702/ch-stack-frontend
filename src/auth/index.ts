@@ -11,3 +11,4 @@ import { authClient } from './authClient';
 export const loginUrl = () => authClient.loginUrl();
 /** LoginPage 의 "Google 로그인" 버튼이 쓰는 편의 함수. */
 export const googleLoginUrl = () => authClient.googleLoginUrl();
+export { rememberReturnTo, RETURN_TO_COOKIE } from './returnTo';

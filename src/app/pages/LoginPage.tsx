@@ -12,7 +12,8 @@ import {
   GoogleIcon,
   SitemarkIcon,
 } from '../../context/templates/sign-in/components/CustomIcons';
-import { loginUrl, googleLoginUrl } from '../../auth';
+import { useLocation } from 'react-router-dom';
+import { loginUrl, googleLoginUrl, rememberReturnTo } from '../../auth';
 
 // Keycloak 기반 로그인. 버튼을 누르면 auth-server(:9000)의 OIDC 시작점으로 리다이렉트되고,
 // Keycloak 화면에서 계정/구글 로그인 후 백엔드가 /app 으로 되돌려보낸다.
@@ -60,6 +61,10 @@ const LoginContainer = styled(Stack)(({ theme }) => ({
 }));
 
 export default function LoginPage(props: { disableCustomTheme?: boolean }) {
+  const location = useLocation();
+  // ProtectedRoute 가 넘긴 원래 목적지. 직접 /login 에 온 경우는 /app.
+  const from = (location.state as { from?: string } | null)?.from ?? '/app';
+
   return (
     <AppTheme {...props}>
       <CssBaseline enableColorScheme />
@@ -82,6 +87,7 @@ export default function LoginPage(props: { disableCustomTheme?: boolean }) {
               fullWidth
               variant="contained"
               onClick={() => {
+                rememberReturnTo(from);
                 window.location.href = loginUrl();
               }}
             >
@@ -92,6 +98,7 @@ export default function LoginPage(props: { disableCustomTheme?: boolean }) {
               fullWidth
               variant="outlined"
               onClick={() => {
+                rememberReturnTo(from);
                 window.location.href = googleLoginUrl();
               }}
               startIcon={<GoogleIcon />}
