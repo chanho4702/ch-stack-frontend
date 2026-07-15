@@ -148,6 +148,7 @@ function ProductCard({ product }: { product: Product }) {
               {product.name}
             </Typography>
             {product.badge && <Chip label={product.badge} size="small" color="primary" variant="outlined" />}
+            {product.liveUrl && <Chip label="라이브" size="small" color="primary" variant="outlined" />}
           </Stack>
           <Typography variant="body2" sx={{ color: 'text.secondary', lineHeight: 1.7, flexGrow: 1 }}>
             {product.desc}

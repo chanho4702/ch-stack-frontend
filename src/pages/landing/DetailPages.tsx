@@ -8,6 +8,7 @@ import Typography from '@mui/material/Typography';
 import Button from '@mui/material/Button';
 import Chip from '@mui/material/Chip';
 import GitHubIcon from '@mui/icons-material/GitHub';
+import LaunchRoundedIcon from '@mui/icons-material/LaunchRounded';
 import ArrowBackRoundedIcon from '@mui/icons-material/ArrowBackRounded';
 import AppTheme from '../../context/templates/shared-theme/AppTheme';
 import NotFoundPage from '../../app/pages/NotFoundPage';
@@ -88,9 +89,22 @@ export function ProductDetailPage() {
       <ComingSoon />
       <Box sx={{ mt: 4 }}>
         {product.href ? (
-          <Button variant="contained" href={product.href} target="_blank" rel="noopener" startIcon={<GitHubIcon />}>
-            소스 보기
-          </Button>
+          <Stack direction="row" spacing={1.5} sx={{ flexWrap: 'wrap', gap: 1.5 }}>
+            {product.liveUrl && (
+              <Button variant="contained" href={product.liveUrl} startIcon={<LaunchRoundedIcon />}>
+                라이브로 열기
+              </Button>
+            )}
+            <Button
+              variant={product.liveUrl ? 'outlined' : 'contained'}
+              href={product.href}
+              target="_blank"
+              rel="noopener"
+              startIcon={<GitHubIcon />}
+            >
+              소스 보기
+            </Button>
+          </Stack>
         ) : (
           <Stack direction="row" spacing={1.5} sx={{ alignItems: 'center', flexWrap: 'wrap' }}>
             <Chip label={product.badge} size="small" color="primary" variant="outlined" />

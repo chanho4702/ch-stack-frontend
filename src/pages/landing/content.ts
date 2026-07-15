@@ -44,11 +44,12 @@ export interface Product {
   desc: string;
   href?: string; // 오픈소스 GitHub
   badge?: string; // 회사 제품 표기
+  liveUrl?: string; // 구동 중인 앱 — nginx 단일 오리진(/wiki/, /alm/)에서만 유효
 }
 
 export const openSourceProducts: Product[] = [
-  { slug: 'alm', name: 'ALM', desc: 'Jira 스타일 이슈·스프린트 관리.', href: 'https://github.com/chanho4702/ALM' },
-  { slug: 'wiki', name: 'WIKI', desc: 'Confluence 스타일 문서·위키.', href: 'https://github.com/chanho4702/WIKI' },
+  { slug: 'alm', name: 'ALM', desc: 'Jira 스타일 이슈·스프린트 관리.', href: 'https://github.com/chanho4702/ALM', liveUrl: '/alm/' },
+  { slug: 'wiki', name: 'WIKI', desc: 'Confluence 스타일 문서·위키.', href: 'https://github.com/chanho4702/WIKI', liveUrl: '/wiki/' },
   {
     slug: 'design-system',
     name: 'Chanho Design System',

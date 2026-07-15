@@ -24,6 +24,9 @@ interface NavItem {
 const navItems: NavItem[] = [
   { label: '제품', hash: '#products' },
   { label: '성과', hash: '#work' },
+  // 위키/ALM은 별도 SPA — nginx 단일 오리진에서 전체 페이지 이동 (라우터 링크 아님)
+  { label: '위키', href: '/wiki/' },
+  { label: 'ALM', href: '/alm/' },
   { label: '설계 문서', to: '/designs' },
   { label: '프로필', to: '/profile' },
   { label: 'GitHub', href: GITHUB_URL, external: true },
