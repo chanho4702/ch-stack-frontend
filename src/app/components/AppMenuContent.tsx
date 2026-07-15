@@ -7,6 +7,8 @@ import ListItemText from '@mui/material/ListItemText';
 import Stack from '@mui/material/Stack';
 import HomeRoundedIcon from '@mui/icons-material/HomeRounded';
 import ArticleRoundedIcon from '@mui/icons-material/ArticleRounded';
+import MenuBookRoundedIcon from '@mui/icons-material/MenuBookRounded';
+import AssignmentRoundedIcon from '@mui/icons-material/AssignmentRounded';
 import SettingsRoundedIcon from '@mui/icons-material/SettingsRounded';
 import InfoRoundedIcon from '@mui/icons-material/InfoRounded';
 
@@ -14,11 +16,14 @@ interface MenuItem {
   text: string;
   icon: React.ReactNode;
   path?: string; // 없으면 비활성 placeholder
+  href?: string; // 별도 SPA(위키/ALM) — 라우터 밖이라 전체 페이지 이동. nginx 단일 오리진에서만 유효
 }
 
 const mainItems: MenuItem[] = [
   { text: '대시보드', icon: <HomeRoundedIcon />, path: '/app' },
   { text: '게시판', icon: <ArticleRoundedIcon />, path: '/app/board' },
+  { text: '위키', icon: <MenuBookRoundedIcon />, href: '/wiki/' },
+  { text: 'ALM', icon: <AssignmentRoundedIcon />, href: '/alm/' },
 ];
 
 const secondaryItems: MenuItem[] = [
@@ -37,11 +42,15 @@ export default function AppMenuContent({ onNavigate }: { onNavigate?: () => void
   const navigate = useNavigate();
   const location = useLocation();
 
-  const go = (path?: string) => {
-    if (!path) {
+  const go = (item: MenuItem) => {
+    if (item.href) {
+      window.location.assign(item.href);
       return;
     }
-    navigate(path);
+    if (!item.path) {
+      return;
+    }
+    navigate(item.path);
     onNavigate?.();
   };
 
@@ -52,7 +61,7 @@ export default function AppMenuContent({ onNavigate }: { onNavigate?: () => void
           <ListItem key={item.text} disablePadding sx={{ display: 'block' }}>
             <ListItemButton
               selected={!!item.path && isSelected(location.pathname, item.path)}
-              onClick={() => go(item.path)}
+              onClick={() => go(item)}
             >
               <ListItemIcon>{item.icon}</ListItemIcon>
               <ListItemText primary={item.text} />
@@ -63,7 +72,7 @@ export default function AppMenuContent({ onNavigate }: { onNavigate?: () => void
       <List dense>
         {secondaryItems.map((item) => (
           <ListItem key={item.text} disablePadding sx={{ display: 'block' }}>
-            <ListItemButton disabled={!item.path} onClick={() => go(item.path)}>
+            <ListItemButton disabled={!item.path && !item.href} onClick={() => go(item)}>
               <ListItemIcon>{item.icon}</ListItemIcon>
               <ListItemText primary={item.text} />
             </ListItemButton>
