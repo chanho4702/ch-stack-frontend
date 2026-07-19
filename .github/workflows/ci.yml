@@ -1,0 +1,29 @@
+name: CI
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - run: npm run build   # tsc -b가 타입 검증 겸함 (test 스크립트 없음 — 있으면 test 스텝 추가)
+      - uses: actions/upload-artifact@v4
+        with:
+          name: dist
+          path: dist
+      - name: Dispatch deploy
+        if: github.ref == 'refs/heads/main'
+        uses: peter-evans/repository-dispatch@v3
+        with:
+          token: ${{ secrets.DISPATCH_PAT }}
+          repository: chanho4702/infra-settings
+          event-type: deploy
+          client-payload: '{"service":"myfront","sha":"${{ github.sha }}","run_id":"${{ github.run_id }}","repo":"${{ github.repository }}"}'
